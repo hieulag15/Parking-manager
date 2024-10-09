@@ -1,9 +1,15 @@
 import express from "express";
-import { createParkingController } from "../controllers/parkingController.js";
+import { createParkingController, getParkingByZoneController, getAllParkingController } from "../controllers/parkingController.js";
 
-const Router = express.Router();
+const router = express.Router();
 
-Router.router('/')
-    .post(createParkingController);
+router.post('/', createParkingController);
+router.get('/', (req, res, next) => {
+    if (req.query.zone) {
+      return getParkingByZoneController(req, res, next);
+    } else {
+      return getAllParkingController(req, res, next);
+    }
+  });
 
-export const parkingRoute = Router;
+export const parkingRoute = router;

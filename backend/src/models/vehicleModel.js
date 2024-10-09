@@ -1,34 +1,32 @@
 import mongoose from 'mongoose';
-import { ObjectId } from 'mongodb';
-import ApiError from '~/utils/ApiError';
-import { StatusCodes } from 'http-status-codes';
-import { paymentModel } from './paymentModel';
+import mongoose_delete from 'mongoose-delete';
 
-const VEHICLE_COLLECTION_NAME = 'vehicles';
+const { Schema } = mongoose;
 
-const vehicleSchema = new mongoose.Schema({
+const vehicleSchema = new Schema({
   driverId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Driver',
+    type: String,
+    match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
     default: null,
   },
   paymentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Payment',
+    type: String,
+    match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
     default: null,
   },
-  licenePlate: {
+  licensePlate: {
     type: String,
     required: true,
     trim: true,
+    unique: true,
     match: /^[0-9]{2}[A-Z]-[0-9]{4,5}$/,
   },
   type: {
     type: String,
-    trim: true,
-    default: 'Car',
     minlength: 2,
     maxlength: 20,
+    trim: true,
+    default: 'Car',
   },
   active: {
     type: Boolean,
@@ -46,18 +44,16 @@ const vehicleSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+}, { timestamps: true });
+
+vehicleSchema.plugin(mongoose_delete, { 
+  deletedAt: true,
+  overrideMethods: 'all',
 });
 
-const Vehicle = mongoose.model(VEHICLE_COLLECTION_NAME, vehicleSchema);
+
+const Vehicle = mongoose.model('Vehicle', vehicleSchema);
 
 
-export const vehicleModel = {
-  VEHICLE_COLLECTION_NAME,
-  createNew,
-  findOneByLicenePlate,
-  deleteOne,
-  updateDriverId,
-  isActive,
-  inActive,
-  inActiveById,
-};
+
+export default Vehicle

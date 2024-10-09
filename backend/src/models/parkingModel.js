@@ -76,4 +76,13 @@ parkingSchema.plugin(mongoose_delete, {
 
 const Parking = mongoose.model(PARKING_COLLECTION_NAME, parkingSchema);
 
+export const createParking = async (parkingData) => {
+    try {
+      const parking = await Parking.create(parkingData);
+      return parking;
+    } catch (error) {
+      throw new Error(`Error creating parking: ${error.message}`);
+    }
+  };
+
 export default Parking;

@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
-import ApiError from "~/utils/ApiError";
+import ApiError from "../utils/ApiError.js";
 
 const personSchema = new mongoose.Schema(
   {

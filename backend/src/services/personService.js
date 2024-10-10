@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import { personModel } from "~/models/personModel.js";
-import ApiError from "~/utils/ApiError";
+import { personModel } from "../models/personModel.js";
+import ApiError from "../utils/ApiError.js";
 
 const createUser = async (data) => {
   try {
@@ -235,7 +235,7 @@ const deleteMany = async (ids, role) => {
     }
 }
 
-export const userService = {
+export const personService = {
     createUser,
     createUserM,
     createMany,

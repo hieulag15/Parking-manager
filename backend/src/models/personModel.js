@@ -123,8 +123,8 @@ const createNew = async (data) => {
 
 const createMany = async (data) => {
   try {
-    const createNew = await Person.insertMany(data, { ordered: true });
-    return createNew;
+    const createMany = await Person.insertMany(data, { ordered: true });
+    return createMany;
   } catch (error) {
     if (error.type && error.code)
       throw new ApiError(

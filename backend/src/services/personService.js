@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { personModel } from "../models/personModel.js";
+import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 
 const createUser = async (data) => {
@@ -113,7 +114,8 @@ const findById = async (_id) => {
 const updateUser = async (_id, params) => {
     try {
         const user = await personModel.updateUser(_id, params);
-        if (users == null) {
+        console.log('id service: ' + _id);
+        if (user == null) {
             throw new ApiError(
                 StatusCodes.NOT_FOUND,
                 "User not found",
@@ -136,6 +138,7 @@ const updateUser = async (_id, params) => {
 
 const updateAvatar = async (_id, image) => {
     try {
+      console.log("id service: " + _id)
         const user = await personModel.updateAvatar(_id, image);
         if (users == null) {
             throw new ApiError(

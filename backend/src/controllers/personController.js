@@ -50,7 +50,11 @@ const updateUser = async (req, res) => {
   try {
     const newUser = req.body;
     delete newUser.account;
-    const result = await personService.updateUser(req.query._id, newUser);
+
+    console.log("req.body: " + JSON.stringify(req.body));
+    console.log("req.query.id: " + req.query.id);
+
+    const result = await personService.updateUser(req.query.id, newUser);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res
@@ -60,83 +64,83 @@ const updateUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-    try {
-        const result = await personService.deleteUser(req.query._id, 'Admin');
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting user: ${error.message}` });
-    }
-}
+  try {
+    const result = await personService.deleteUser(req.query._id, "user");
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting user: ${error.message}` });
+  }
+};
 
 const deleteManager = async (req, res) => {
-    try {
-        const result = await personService.deleteUser(req.query._id, 'Manager');
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting manager: ${error.message}` });
-    }
-}
+  try {
+    const result = await personService.deleteUser(req.query._id, "Manager");
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting manager: ${error.message}` });
+  }
+};
 
 const deleteStaff = async (req, res) => {
-    try {
-        const result = await personService.deleteUser(req.query._id, 'Staff');
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting staff: ${error.message}` });
-    }
-}
+  try {
+    const result = await personService.deleteUser(req.query._id, "Staff");
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting staff: ${error.message}` });
+  }
+};
 
 const deleteStaffs = async (req, res) => {
-    try {
-        const ids = req.body.ids;
-        const result = await personService.deleteMany(ids, 'Manager');
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting many staffs: ${error.message}` });
-    }
-}
+  try {
+    const ids = req.body.ids;
+    const result = await personService.deleteMany(ids, "Manager");
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting many staffs: ${error.message}` });
+  }
+};
 
 const deleteMnagers = async (req, res) => {
-    try {
-        const ids = req.body.ids;
-        const result = await personService.deleteMany(ids, 'Admin');
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting many managers: ${error.message}` });
-    }
-}
+  try {
+    const ids = req.body.ids;
+    const result = await personService.deleteMany(ids, "Admin");
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting many managers: ${error.message}` });
+  }
+};
 
 const deleteAll = async (req, res) => {
-    try {
-        const result = await personService.deleteAll();
-        res.status(StatusCodes.OK).json(result);
-    } catch (error) {
-        res
-           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-           .json({ message: `Error deleting all: ${error.message}` });
-    }
-}
+  try {
+    const result = await personService.deleteAll();
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error deleting all: ${error.message}` });
+  }
+};
 
 export const personController = {
-    createNew,
-    createManager,
-    createMany,
-    findById,
-    updateUser,
-    deleteUser,
-    deleteManager,
-    deleteStaff,
-    deleteStaffs,
-    deleteMnagers,
-    deleteAll,
-}
+  createNew,
+  createManager,
+  createMany,
+  findById,
+  updateUser,
+  deleteUser,
+  deleteManager,
+  deleteStaff,
+  deleteStaffs,
+  deleteMnagers,
+  deleteAll,
+};

@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
+
+const PARKING_COLLECTION_NAME = 'parking';
 
 const { Schema } = mongoose;
 
@@ -83,6 +86,24 @@ export const createParking = async (parkingData) => {
     } catch (error) {
       throw new Error(`Error creating parking: ${error.message}`);
     }
-  };
+};
+
+export const getAllParking = async () => {
+    try {
+        const parking = await Parking.find();
+        return parking;
+    } catch (error) {
+        throw new Error(`Error getting parking: ${error.message}`);
+    }
+} 
+
+export const getParkingByZone = async (zone) => {
+    try {
+        const parking = await Parking.findOne({ zone });
+        return parking;
+    } catch (error) {
+        throw new Error(`Error getting parking: ${error.message}`);
+    }
+}
 
 export default Parking;

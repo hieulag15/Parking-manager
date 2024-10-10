@@ -1,9 +1,13 @@
 import express from "express";
-import connectDB from "./src/config/mongoose.js";
-
+import connectDB from "./config/mongoose.js";
+import route from "./routes/index.js";
 const app = express();
 
 connectDB();
+
+app.use(express.json())
+
+route(app);
 
 const PORT = 3000;
 app.listen(PORT, () => {

@@ -1,9 +1,7 @@
-import express from "express"
 import { parkingRoute } from "./parkingRoute.js"
 
-const Router = express.Router()
+const route = (app) => {
+    app.use('/parking', parkingRoute);
+}
 
-// API user
-Router.use('/parking', parkingRoute)
-
-export const APIs_V1 = Router
+export default route

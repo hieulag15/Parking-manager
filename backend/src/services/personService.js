@@ -2,6 +2,68 @@ import { StatusCodes } from "http-status-codes";
 import { personModel } from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
+import jwt from 'jsonwebtoken'
+import env from '../config/enviroment.js'
+
+
+const generateAccessToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      username: user.account.username,
+      role: user.account.role,
+    },
+    env.JWT_ACCESS_KEY,
+    { expiresIn: '2h' },
+  );
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      username: user.account.username,
+      role: user.account.role,
+    },
+    env.JWT_REFRESH_KEY,
+    { expiresIn: '2d' },
+  );
+};
+
+const login = async (req, res) => {
+  try {
+    const user = await personModel.findOne({
+      account: { username: req.body.account.username },
+    });
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "User not found",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+    const isMatch = await bcrypt.compare(req.body.account.password, user.account.password);
+    if (!isMatch) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Password mismatch",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+    return user;
+  } catch (e) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      e.message,
+      "Internal",
+      "BR_person_3"
+    );
+  }
+}
 
 const createUser = async (data) => {
   try {

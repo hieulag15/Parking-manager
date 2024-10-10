@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
+import mongoose_delete from "mongoose-delete";
 
 const personSchema = new mongoose.Schema(
   {
@@ -83,14 +84,9 @@ personSchema.plugin(mongoose_delete, {
 
 const Person = mongoose.model("Person", personSchema);
 
-const validateBeforeCreate = async (data) => {
-  return await personSchema.validateAsync(data, { abortEarly: false });
-};
-
 const createNew = async (data) => {
   try {
-    const validationData = await validateBeforeCreate(data);
-    const check = await findOne(data.account);
+    const check = await Person.findOne({ account: data.account });
     if (check) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -98,7 +94,7 @@ const createNew = async (data) => {
         "Not found"
       );
     }
-    const createNew = await Person.insertOne(validationData);
+    const createNew = await Person.create(data);
     return createNew;
   } catch (error) {
     if (error.type && error.code)
@@ -125,14 +121,8 @@ const createNew = async (data) => {
   }
 };
 
-const createMany = async (_data) => {
+const createMany = async (data) => {
   try {
-    const data = await Promise.all(
-      _data.map(async (el) => {
-        const rs = validateBeforeCreate(el);
-        return rs;
-      })
-    );
     const createNew = await Person.insertMany(data, { ordered: true });
     return createNew;
   } catch (error) {
@@ -167,11 +157,9 @@ const findById = async (id) => {
   }
 };
 
-const updateUser = async (_id, _data) => {
-  _data.updateAt = Date.now();
-  delete _data._id;
-  delete _data.driver;
-  const data = await validateBeforeCreate(_data);
+const updateUser = async (_id, data) => {
+  delete data._id;
+  delete data.driver;
 
   delete data.cratedAt;
   data.updateAt = Date.now();
@@ -184,7 +172,7 @@ const updateUser = async (_id, _data) => {
     const update = await Person.findOneAndUpdate(
       { _id: new ObjectId(_id) },
       updateOperation,
-      { returnDocument: "after" }
+      { new: true }
     );
     return update;
   } catch (error) {
@@ -221,7 +209,7 @@ const updateAvatar = async (_id, image) => {
     const update = await Person.findOneAndUpdate(
       { _id: new ObjectId(_id) },
       updateOperation,
-      { returnDocument: "after" }
+      { new: true }
     );
     return update;
   } catch (error) {
@@ -238,11 +226,7 @@ const updateAvatar = async (_id, image) => {
 
 const deleteUser = async (_id, role) => {
   try {
-    const result = await Person.deleteOne(
-      { _id: _id, "account.role": role },
-      { returnDocument: "true" },
-      { locale: "vi", strength: 1 }
-    );
+    const result = await Person.deleteOne({ _id: _id, "account.role": role });
     return result;
   } catch (err) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err.message);
@@ -265,7 +249,6 @@ const deleteAll = async () => {
 
 export const personModel = {
   Person,
-  validateBeforeCreate,
   createNew,
   createMany,
   findByUserName,

@@ -31,4 +31,5 @@ export const getParkingByZoneController = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: `Error fetching parking by zone: ${error.message}` });
     }
-  };
+};
+

@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
-import mongoose_delete from 'mongoose-delete';
+import mongoose_delete from "mongoose-delete";
 
 const personSchema = new mongoose.Schema(
   {
@@ -84,10 +84,9 @@ personSchema.plugin(mongoose_delete, {
 
 const Person = mongoose.model("Person", personSchema);
 
-
 const createNew = async (data) => {
   try {
-    const check = await findOne(data.account);
+    const check = await Person.findOne({ account: data.account });
     if (check) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -95,7 +94,7 @@ const createNew = async (data) => {
         "Not found"
       );
     }
-    const createNew = await Person.save(data);
+    const createNew = await Person.create(data);
     return createNew;
   } catch (error) {
     if (error.type && error.code)
@@ -124,7 +123,7 @@ const createNew = async (data) => {
 
 const createMany = async (data) => {
   try {
-    const createNew = await Person.insertMany(data, { ordered: true, validateBeforeCreate: true });
+    const createNew = await Person.insertMany(data, { ordered: true });
     return createNew;
   } catch (error) {
     if (error.type && error.code)
@@ -227,9 +226,7 @@ const updateAvatar = async (_id, image) => {
 
 const deleteUser = async (_id, role) => {
   try {
-    const result = await Person.deleteOne(
-      { _id: _id, "account.role": role },
-    );
+    const result = await Person.deleteOne({ _id: _id, "account.role": role });
     return result;
   } catch (err) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err.message);
@@ -252,7 +249,6 @@ const deleteAll = async () => {
 
 export const personModel = {
   Person,
-  validateBeforeCreate,
   createNew,
   createMany,
   findByUserName,

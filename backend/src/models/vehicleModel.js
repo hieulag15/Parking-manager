@@ -1,15 +1,11 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
 
 const { Schema } = mongoose;
 
 const vehicleSchema = new Schema({
   driverId: {
-    type: String,
-    match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
-    default: null,
-  },
-  paymentId: {
     type: String,
     match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
     default: null,
@@ -46,14 +42,55 @@ const vehicleSchema = new Schema({
   },
 }, { timestamps: true });
 
-vehicleSchema.plugin(mongoose_delete, { 
+vehicleSchema.plugin(mongoose_delete, {
   deletedAt: true,
   overrideMethods: 'all',
 });
 
+const Vehicle = mongoose.model("Vehicles", vehicleSchema);
 
-const Vehicle = mongoose.model('Vehicle', vehicleSchema);
+const createNew = async (data) => {
+  try {
+    // Check if the license plate already exists
+    const existingVehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
+    if (existingVehicle) {
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "License plate already exists",
+        "Conflict"
+      );
+    }
 
+    // Create a new vehicle
+    const newVehicle = await Vehicle.create(data);
+    return newVehicle;
+  } catch (error) {
+    if (error.type && error.code) {
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    } else if (error.message.includes("E11000 duplicate key")) {
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "Duplicate license plate",
+        "LicensePlate_Conflict",
+        "LicensePlate_Conflict"
+      );
+    } else {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message,
+        "Internal_Server_Error",
+        "Internal_Server_Error"
+      );
+    }
+  }
+};
 
-
-export default Vehicle
+export const vehicleModel = {
+  Vehicle,
+  createNew
+};

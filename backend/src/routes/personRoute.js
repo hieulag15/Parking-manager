@@ -1,22 +1,21 @@
 import express from "express";
 import { personController , createNew} from "../controllers/personController.js";
 
-const Router = express.Router();
+const router = express.Router();
 
-Router.post('/', personController.createNew)
+router.post('/', personController.createNew)
 
-Router.route("/")
-.put(personController.updateUser)
-.delete(personController.deleteUser);
+router.put('/', personController.updateUser)
+router.delete('/', personController.deleteUser);
 
 
-// Router.route('/addMany')
+// router.route('/addMany')
 // .post(personController.createMany);
 
-Router.route('/deleteMany')
-.post(personController.deleteMany);
+// router.route('/deleteMany')
+// .post(personController.deleteMany);
 
-Router.route('/deleteAll')
-.delete(personController.deleteAll);
+// router.route('/deleteAll')
+// .delete(personController.deleteAll);
 
-export const personRoute = Router;
+export const personRoute = router;

@@ -34,9 +34,7 @@ const generateRefreshToken = (user) => {
 
 const login = async (req, res) => {
   try {
-    console.log('username: ' + req.body.account.username)
     const data = req.body;
-    console.log('data: ' + JSON.stringify(data));
     const user = await personModel.findByUserName(data);
     if (!user) {
       throw new ApiError(
@@ -46,7 +44,7 @@ const login = async (req, res) => {
         "BR_person_1"
       );
     }
-    const isMatch = await bcrypt.compare(req.body.account.password, user.account.password);
+    const isMatch = await bcrypt.compare(req.body.password, user.account.password);
     if (!isMatch) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,

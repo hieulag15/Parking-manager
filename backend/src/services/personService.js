@@ -1,6 +1,68 @@
 import { StatusCodes } from "http-status-codes";
 import { personModel } from "../models/personModel.js";
+import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
+import jwt from 'jsonwebtoken'
+import { env } from "../config/enviroment.js";
+
+
+const generateAccessToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      username: user.account.username,
+      role: user.account.role,
+    },
+    env.JWT_ACCESS_KEY,
+    { expiresIn: '2h' },
+  );
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      username: user.account.username,
+      role: user.account.role,
+    },
+    env.JWT_REFRESH_KEY,
+    { expiresIn: '2d' },
+  );
+};
+
+const login = async (req, res) => {
+  try {
+    const data = req.body;
+    const user = await personModel.findByUserName(data);
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "User not found",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+    const isMatch = await bcrypt.compare(req.body.password, user.account.password);
+    if (!isMatch) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Password mismatch",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+    return user;
+  } catch (e) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      e.message,
+      "Internal",
+      "BR_person_3"
+    );
+  }
+}
 
 const createUser = async (data) => {
   try {
@@ -113,7 +175,8 @@ const findById = async (_id) => {
 const updateUser = async (_id, params) => {
     try {
         const user = await personModel.updateUser(_id, params);
-        if (users == null) {
+        console.log('id service: ' + _id);
+        if (user == null) {
             throw new ApiError(
                 StatusCodes.NOT_FOUND,
                 "User not found",
@@ -136,6 +199,7 @@ const updateUser = async (_id, params) => {
 
 const updateAvatar = async (_id, image) => {
     try {
+      console.log("id service: " + _id)
         const user = await personModel.updateAvatar(_id, image);
         if (users == null) {
             throw new ApiError(
@@ -245,4 +309,7 @@ export const personService = {
     deleteUser,
     deleteAll,
     deleteMany,
+    login,
+    generateAccessToken,
+    generateRefreshToken,
 }

@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
 
+const ObjectId = mongoose.Types.ObjectId;
+
 const personSchema = new mongoose.Schema(
   {
     name: {

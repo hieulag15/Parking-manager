@@ -3,7 +3,7 @@ import { personModel } from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from 'jsonwebtoken'
-import env from '../config/enviroment.js'
+import { env } from "../config/enviroment.js";
 
 
 const generateAccessToken = (user) => {
@@ -34,9 +34,10 @@ const generateRefreshToken = (user) => {
 
 const login = async (req, res) => {
   try {
-    const user = await personModel.findOne({
-      account: { username: req.body.account.username },
-    });
+    console.log('username: ' + req.body.account.username)
+    const data = req.body;
+    console.log('data: ' + JSON.stringify(data));
+    const user = await personModel.findByUserName(data);
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -310,4 +311,7 @@ export const personService = {
     deleteUser,
     deleteAll,
     deleteMany,
+    login,
+    generateAccessToken,
+    generateRefreshToken,
 }

@@ -141,6 +141,7 @@ const createMany = async (data) => {
 
 const findByUserName = async (data) => {
   try {
+    console.log('username model: ' + data.username);
     const findUser = await Person.findOne({
       "account.username": data.username,
     });

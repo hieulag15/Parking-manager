@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const ObjectId = mongoose.Types.ObjectId;
+const REFRESHTOKEN_COLECTION_NAME = 'refreshToken';
 
 const refreshTokenSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const refreshTokenSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const refreshToken = mongoose.model('RefreshToken', refreshTokenSchema);
+const refreshToken = mongoose.model(REFRESHTOKEN_COLECTION_NAME, refreshTokenSchema);
 
 const findRefreshToken = async (refreshtoken, personId) => {
     try {

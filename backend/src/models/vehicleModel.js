@@ -3,6 +3,8 @@ import mongoose_delete from 'mongoose-delete';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
 
 const { Schema } = mongoose;
+const ObjectId = mongoose.Types.ObjectId;
+
 
 export const VEHICLE_COLLECTION_NAME = 'vehicles';
 
@@ -12,7 +14,7 @@ const vehicleSchema = new Schema({
     match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
     default: null,
   },
-  licensePlate: {
+  licenePlate: {
     type: String,
     required: true,
     trim: true,
@@ -51,14 +53,31 @@ vehicleSchema.plugin(mongoose_delete, {
 
 const Vehicle = mongoose.model("Vehicles", vehicleSchema);
 
-const findOneByLicensePlate = async (licenePlate) => {
-  return await Vehicle.findOne({ licensePlate });
+const findByLicensePlate = async (licenePlate) => {
+  try {
+    const vehicle = await Vehicle.findOne({ licenePlate: licenePlate})
+    return vehicle;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+const updateDriverId = async (id, driverId) => {
+  try {
+    const updateVehicle = await Vehicle.updateOne(
+      { _id: new ObjectId(id)},
+      { $set: { driverId: new ObjectId(driverId) }}
+    )
+    return updateVehicle;
+  } catch (error) {
+    throw new Error(error.message);
+  }
 }
 
 const createNew = async (data) => {
   try {
     // Check if the license plate already exists
-    const existingVehicle = await findOneByLicensePlate(data.licensePlate);
+    const existingVehicle = await findByLicensePlate(data.licensePlate);
     if (existingVehicle) {
       throw new ApiError(
         StatusCodes.CONFLICT,
@@ -98,5 +117,7 @@ const createNew = async (data) => {
 
 export const vehicleModel = {
   Vehicle,
-  createNew
+  createNew,
+  findByLicensePlate,
+  updateDriverId,
 };

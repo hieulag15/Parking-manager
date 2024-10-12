@@ -20,33 +20,6 @@ const createVehicle = async (data) => {
   }
 };
 
-// Get all vehicles
-const getAllVehicles = async () => {
-  try {
-    return await vehicleModel.getAll();
-  } catch (error) {
-    handleError(error);
-  }
-};
-
-// Get vehicle by ID
-const getVehicleById = async (_id) => {
-  try {
-    const vehicle = await vehicleModel.findById(_id);
-    if (!vehicle) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        "Vehicle not found",
-        "Not found",
-        "BR_vehicle_1"
-      );
-    }
-    return vehicle;
-  } catch (error) {
-    handleError(error);
-  }
-};
-
 // Update vehicle
 const updateVehicle = async (_id, params) => {
   try {
@@ -117,8 +90,6 @@ const handleError = (error) => {
 
 export const vehicleService = {
   createVehicle,
-  getAllVehicles,
-  getVehicleById,
   updateVehicle,
   deleteVehicle,
   deleteAllVehicles,

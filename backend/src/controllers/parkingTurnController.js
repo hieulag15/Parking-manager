@@ -1,4 +1,4 @@
-import { createParkingTurn } from "../models/parkingTurnModel.js";
+import { createParkingTurn } from "../services/parkingTurnService.js";
 
 export const createParkingTurnController = async (req, res) => {
   try {

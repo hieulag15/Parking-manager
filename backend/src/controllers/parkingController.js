@@ -1,4 +1,4 @@
-import { createParking, getAllParking , getParkingByZone } from '../models/parkingModel.js';
+import { createParking, getParkingByZone } from '../services/parkingService.js';
 
 export const createParkingController = async (req, res) => {
   try {
@@ -9,15 +9,6 @@ export const createParkingController = async (req, res) => {
     res.status(500).json({ message: `Error creating parking: ${error.message}` });
   }
 };
-
-export const getAllParkingController = async (req, res) => {
-    try {
-        const parking = await getAllParking();
-        res.status(200).json(parking);
-    } catch (error) {
-        res.status(500).json({ message: `Error getting parking: ${error.message}` });
-    }
-}
 
 export const getParkingByZoneController = async (req, res) => {
     try {

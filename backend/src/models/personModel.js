@@ -301,7 +301,6 @@ const deleteAll = async () => {
 };
 
 export const personModel = {
-  Person,
   createNew,
   createMany,
   findByUserName,
@@ -311,3 +310,5 @@ export const personModel = {
   deleteUser,
   deleteAll,
 };
+
+export default Person;

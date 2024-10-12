@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
-import { vehicleModel } from "./vehicleModel.js";
+import Vehicle, { vehicleModel } from "./vehicleModel.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 export const PERSON_COLLECTION_NAME = "people";
@@ -170,7 +170,10 @@ const createDriver = async (data, licenePlate, job, department) => {
     data.driver.vehicleId = mongoose.Types.ObjectId(data.driver.vehicleId);
     const createNewDriver = await Person.create(data);
 
-    const updateVehicle = await vehicleModel.updateDriverId(data.driver.vehicleId, createNewDriver._id)
+    const updateVehicle = await vehicleModel.updateDriverId(
+      data.driver.vehicleId,
+      createNewDriver._id
+    );
 
     if (updateVehicle.modifiedCount == 0) {
       throw new ApiError(
@@ -274,6 +277,80 @@ const updateAvatar = async (_id, image) => {
   }
 };
 
+const updateDriver = async (_id, data, licenePlate, job, department) => {
+  delete data._id;
+  data.updateAt = Date.now();
+  const findDriver = await Person.findOne({ _id: new ObjectId(_id) });
+  if (!findDriver) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "Driver not found",
+      "Not found",
+      "BR_person_1"
+    );
+  }
+
+  const findVehicle = await Vehicle.findOne({ licenePlate: licenePlate });
+  let vehicleId = findDriver.driver.vehicleId;
+  if (findVehicle == null) {
+    const createVehicle = await vehicleModel.createNew({
+      licenePlate: licenePlate,
+      type: "Car",
+      driverId: findDriver._id,
+    });
+
+    vehicleId = createVehicle.insertedId;
+    await vehicleModel.deleteOne(findDriver.driver.vehicleId);
+  } else if (findVehicle.driverId == null) {
+    //Neu xe ton tai nhung chua co chu
+    const update = await Vehicle.updateDriverId(
+      findVehicle._id,
+      findDriver._id
+    );
+    vehicleId = findVehicle._id;
+    await vehicleModel.deleteOne(findDriver.driver.vehicleId);
+  } else if (!findVehicle.driverId.equals(findDriver._id)) {
+    //Neu xe ton tai nhung co chu khac roi
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Vehicle already has a driver",
+      "Conflict",
+      "BR_vehicle_2"
+    );
+  } else if (findVehicle.driverId.equals(findDriver._id)) {
+    //Neu xe ton tai va la xe cua chu nay
+    vehicleId = findVehicle._id.toString();
+  }
+
+  data = {
+    ...data,
+    driver: {
+      vehicleId: vehicleId,
+      job: job,
+      department: department,
+    },
+  };
+
+  data.updateAt = Date.now();
+  data.driver.vehicleId = new ObjectId(vehicleId);
+
+  try {
+    const updateOperation = {
+      $set: {
+        ...data,
+      },
+    };
+    const result = await Person.findOneAndUpdate(
+      { _id: new ObjectId(_id) },
+      updateOperation,
+      { new: true }
+    );
+    return result;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 const deleteUser = async (_id, role) => {
   try {
     const result = await Person.deleteOne({ _id: _id, "account.role": role });
@@ -297,6 +374,39 @@ const deleteAll = async () => {
   }
 };
 
+const deleteDriver = async (_id) => {
+  try {
+    const driver = await Person.findOne(
+      { _id: new ObjectId(_id) ,
+      driver: { $exists: true}
+      }
+    )
+    if (driver) {
+      if (driver.driver.vehicleId) {
+        const updateId = await vehicleModel.updateOne({ _id: new ObjectId(driver.driver.vehicleId)}, { $set: { driverId: null}});
+      } 
+    } else {
+      throw new ApiError('Driver not exist');
+    }
+    const result = await Person.deleteOne({ _id: new ObjectId(_id)});
+    return result;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
+const deleteDrivers = async (_ids) => {
+  try {
+    // update lai nhung xe co Id la nguoi dung muon xe tro thanh xe khong chu
+    const drivers = _ids.map((_ids) => new ObjectId(_ids));
+    const updateid = await Vehicle.updateMany({ driverId: { $in: drivers }}, { $set: { driverId: null}});
+    const result = await Person.deleteMany({ _id: { $in: drivers}});
+    return result;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
 export const personModel = {
   Person,
   createNew,
@@ -307,4 +417,7 @@ export const personModel = {
   updateAvatar,
   deleteUser,
   deleteAll,
+  deleteDriver,
+  deleteDrivers,
+  updateDriver,
 };

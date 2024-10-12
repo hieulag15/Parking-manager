@@ -1,10 +1,14 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
+import { PARKING_TURN_COLLECTION_NAME } from './parkingTurnModel.js';
+import { ref } from 'joi';
+import ApiError from '~/utils/ApiError.js';
 
 export const PARKING_COLLECTION_NAME = 'parking';
 
 const { Schema } = mongoose;
+const { ObjectId } = Schema.Types;
 
 const slotSchema = new Schema({
   position: {
@@ -15,8 +19,8 @@ const slotSchema = new Schema({
     trim: true,
   },
   parkingTurnId: {
-    type: String,
-    match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
+    type: ObjectId,
+    ref: PARKING_TURN_COLLECTION_NAME,
     default: null,
   },
   isBlank: {
@@ -105,5 +109,33 @@ export const getParkingByZone = async (zone) => {
         throw new Error(`Error getting parking: ${error.message}`);
     }
 }
+
+export const updateSlot = async (parkingId, position, parkingTurnId) => {
+    try {
+        const parking = await Parking.findOneAndUpdate(
+          { _id: parkingId, 'slots.position': position },
+          {
+            $set: {
+              'slots.$.parkingTurnId': parkingTurnId,
+              'slots.$.isBlank': false,
+            },
+            $inc: { occupied: 1 },
+          },
+          { new: true }
+        )
+
+        if (!parking) {
+          throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+        }
+    
+        return parking;
+    } catch (error) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Error updating parking slot',
+        'InternalServerError'
+      );
+    }
+  }
 
 export default Parking;

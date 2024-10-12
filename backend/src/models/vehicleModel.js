@@ -51,7 +51,7 @@ vehicleSchema.plugin(mongoose_delete, {
   overrideMethods: 'all',
 });
 
-const Vehicle = mongoose.model("Vehicles", vehicleSchema);
+const Vehicle = mongoose.model(VEHICLE_COLLECTION_NAME, vehicleSchema);
 
 const findByLicensePlate = async (licenePlate) => {
   try {
@@ -116,8 +116,9 @@ const createNew = async (data) => {
 };
 
 export const vehicleModel = {
-  Vehicle,
   createNew,
   findByLicensePlate,
   updateDriverId,
 };
+
+export default Vehicle;

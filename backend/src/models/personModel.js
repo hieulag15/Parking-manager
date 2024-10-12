@@ -5,7 +5,7 @@ import mongoose_delete from "mongoose-delete";
 import { vehicleModel } from "./vehicleModel.js";
 
 const ObjectId = mongoose.Types.ObjectId;
-const PERSON_COLLECTION_NAME = "people";
+export const PERSON_COLLECTION_NAME = "people";
 
 const personSchema = new mongoose.Schema(
   {

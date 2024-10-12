@@ -170,10 +170,7 @@ const createDriver = async (data, licenePlate, job, department) => {
     data.driver.vehicleId = mongoose.Types.ObjectId(data.driver.vehicleId);
     const createNewDriver = await Person.create(data);
 
-    const updateVehicle = await vehicleModel.update(
-      { _id: validateData.driver.vehicleId }, // Tìm xe theo ObjectId
-      { $set: { driverId: createNew._id } }
-    );
+    const updateVehicle = await vehicleModel.updateDriverId(data.driver.vehicleId, createNewDriver._id)
 
     if (updateVehicle.modifiedCount == 0) {
       throw new ApiError(

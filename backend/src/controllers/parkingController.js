@@ -1,4 +1,4 @@
-import { createParking, getAllParking , getParkingByZone } from '../models/parkingModel.js';
+import { createParking, getAllParking , getParkingByZone } from '~/models/parkingModel.js';
 
 export const createParkingController = async (req, res) => {
   try {

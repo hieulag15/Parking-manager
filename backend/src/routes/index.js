@@ -8,7 +8,7 @@ const route = (app) => {
     app.use('/parking', parkingRoute);
     app.use('/parking-turn', parkingTurnRoute);
     app.use('/person', personRoute);
-    app.use('/vehicles', vehicleRoute);
+    app.use('/vehicle', vehicleRoute);
     app.use("/auth", authRoute);
 }
 

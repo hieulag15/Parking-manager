@@ -408,7 +408,6 @@ const deleteDrivers = async (_ids) => {
 }
 
 export const personModel = {
-  Person,
   createNew,
   createMany,
   findByUserName,
@@ -421,3 +420,5 @@ export const personModel = {
   deleteDrivers,
   updateDriver,
 };
+
+export default Person;

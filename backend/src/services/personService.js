@@ -4,6 +4,8 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from 'jsonwebtoken'
 import { env } from "../config/enviroment.js";
+import { vehicleModel } from "~/models/vehicleModel.js";
+import { vehicleService } from "./vehicleService.js";
 
 
 const generateAccessToken = (user) => {
@@ -198,6 +200,44 @@ const createMany = async (_data) => {
     else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };
+
+const createDriver = async (data) => {
+  try {
+    let { licenePlate, job, department, ...other} = data;
+    let vehicle = await vehicleModel.findByLicensePlate(licenePlate);
+    if (!vehicle) {
+      vehicle = await vehicleModel.createNew({ licenePlate: licenePlate});
+      if (vehicle.acknowledge == false) {
+        throw new ApiError(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Can't create vehicle",
+          "Not create",
+          "BR_vehicle_2"
+        );
+      }
+    }
+
+    const createDriver = await personModel.createDriver(other, licenePlate, job, department)
+    if (createDriver.acknowledge == false) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Can't create driver",
+        "Not create",
+        "BR_person_2"
+      );
+    }
+    return createDriver;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+} 
 
 const findById = async (_id) => {
   try {

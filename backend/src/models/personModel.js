@@ -2,8 +2,10 @@ import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
+import { vehicleModel } from "./vehicleModel.js";
 
 const ObjectId = mongoose.Types.ObjectId;
+export const PERSON_COLLECTION_NAME = "people";
 
 const personSchema = new mongoose.Schema(
   {
@@ -84,7 +86,7 @@ personSchema.plugin(mongoose_delete, {
   overrideMethods: "all",
 });
 
-const Person = mongoose.model("Person", personSchema);
+const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema);
 
 const createNew = async (data) => {
   try {
@@ -136,6 +138,55 @@ const createMany = async (data) => {
         error.code
       );
     else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const createDriver = async (data, licenePlate, job, department) => {
+  try {
+    const vehicle = await vehicleModel.findOneByLicenePlate(licenePlate);
+    if (!vehicle) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "Vehicle not found",
+        "Not found",
+        "BR_vehicle_1"
+      );
+    }
+
+    if (vehicle.driverId != null) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Vehicle already has a driver",
+        "Conflict",
+        "BR_vehicle_2"
+      );
+    }
+
+    data.driver = {
+      vehicleId: vehicle._id.toString(),
+      job: job,
+      department: department,
+    };
+    data.driver.vehicleId = mongoose.Types.ObjectId(data.driver.vehicleId);
+    const createNewDriver = await Person.create(data);
+
+    const updateVehicle = await vehicleModel.update(
+      { _id: validateData.driver.vehicleId }, // Tìm xe theo ObjectId
+      { $set: { driverId: createNew._id } }
+    );
+
+    if (updateVehicle.modifiedCount == 0) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Update vehicle driverId failed",
+        "Internal Server Error",
+        "BR_vehicle_3"
+      );
+    }
+
+    return createNewDriver;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };
 

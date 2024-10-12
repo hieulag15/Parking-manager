@@ -53,7 +53,19 @@ const login = async (req, res) => {
         "BR_person_1"
       );
     }
-    return user;
+    const accessToken = generateRefreshToken(user);
+    const refreshToken = generateRefreshToken(user);
+    delete user.account.password;
+
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      path: '/',  
+      sercure: false,
+      sametime: 'strict',
+    });
+
+    return { person: user, accessToken };
   } catch (e) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
@@ -61,6 +73,45 @@ const login = async (req, res) => {
       "Internal",
       "BR_person_3"
     );
+  }
+}
+
+const changePassword = async (req, res) => {
+  try {
+    const data = req.body;
+    const user = await personModel.findOne(data);
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "User not found",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+
+    const validatePasswords = await bcrypt.compare(data.password, user.account.password)
+    if (!validatePasswords) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Password mismatch",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+
+    const newPassword = hashPassword(data.newPassword);
+    user.account.password = newPassword;
+    const updatePassword = await personModel.updateUser(user._id, user);
+    return updatePassword;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 }
 
@@ -312,4 +363,5 @@ export const personService = {
     login,
     generateAccessToken,
     generateRefreshToken,
+    changePassword,
 }

@@ -4,6 +4,8 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
 
 const { Schema } = mongoose;
 
+export const VEHICLE_COLLECTION_NAME = 'vehicles';
+
 const vehicleSchema = new Schema({
   driverId: {
     type: String,
@@ -49,10 +51,14 @@ vehicleSchema.plugin(mongoose_delete, {
 
 const Vehicle = mongoose.model("Vehicles", vehicleSchema);
 
+const findOneByLicensePlate = async (licenePlate) => {
+  return await Vehicle.findOne({ licensePlate });
+}
+
 const createNew = async (data) => {
   try {
     // Check if the license plate already exists
-    const existingVehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
+    const existingVehicle = await findOneByLicensePlate(data.licensePlate);
     if (existingVehicle) {
       throw new ApiError(
         StatusCodes.CONFLICT,

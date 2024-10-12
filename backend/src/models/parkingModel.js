@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
 
-const PARKING_COLLECTION_NAME = 'parking';
+export const PARKING_COLLECTION_NAME = 'parking';
 
 const { Schema } = mongoose;
 

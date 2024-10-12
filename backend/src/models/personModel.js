@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
 
 const ObjectId = mongoose.Types.ObjectId;
+const PERSON_COLLECTION_NAME = 'person';
 
 const personSchema = new mongoose.Schema(
   {
@@ -84,7 +85,7 @@ personSchema.plugin(mongoose_delete, {
   overrideMethods: "all",
 });
 
-const Person = mongoose.model("Person", personSchema);
+const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema);
 
 const createNew = async (data) => {
   try {

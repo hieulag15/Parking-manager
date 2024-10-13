@@ -1,19 +1,17 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
+import { PERSON_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 
 const { Schema } = mongoose;
 const ObjectId = mongoose.Types.ObjectId;
 
-
-export const VEHICLE_COLLECTION_NAME = 'vehicles';
-
-const vehicleSchema = new Schema({
+export const vehicleSchema = new Schema({
   driverId: {
     type: ObjectId,
-    ref: 'people',
+    ref: PERSON_COLLECTION_NAME,
     default: null,
   },
-  licenePlate: {
+  licensePlate: {
     type: String,
     required: true,
     trim: true,
@@ -51,73 +49,5 @@ vehicleSchema.plugin(mongoose_delete, {
 });
 
 const Vehicle = mongoose.model(VEHICLE_COLLECTION_NAME, vehicleSchema);
-
-const findByLicensePlate = async (licenePlate) => {
-  try {
-    const vehicle = await Vehicle.findOne({ licenePlate: licenePlate})
-    return vehicle;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-const updateDriverId = async (id, driverId) => {
-  try {
-    const updateVehicle = await Vehicle.updateOne(
-      { _id: new ObjectId(id)},
-      { $set: { driverId: new ObjectId(driverId) }}
-    )
-    return updateVehicle;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-const createNew = async (data) => {
-  try {
-    // Check if the license plate already exists
-    const existingVehicle = await findByLicensePlate(data.licensePlate);
-    if (existingVehicle) {
-      throw new ApiError(
-        StatusCodes.CONFLICT,
-        "License plate already exists",
-        "Conflict"
-      );
-    }
-
-    // Create a new vehicle
-    const newVehicle = await Vehicle.create(data);
-    return newVehicle;
-  } catch (error) {
-    if (error.type && error.code) {
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    } else if (error.message.includes("E11000 duplicate key")) {
-      throw new ApiError(
-        StatusCodes.CONFLICT,
-        "Duplicate license plate",
-        "LicensePlate_Conflict",
-        "LicensePlate_Conflict"
-      );
-    } else {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message,
-        "Internal_Server_Error",
-        "Internal_Server_Error"
-      );
-    }
-  }
-};
-
-export const vehicleModel = {
-  createNew,
-  findByLicensePlate,
-  updateDriverId,
-};
 
 export default Vehicle;

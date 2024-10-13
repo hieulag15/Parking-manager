@@ -3,6 +3,7 @@ import ApiError from '../utils/ApiError.js';
 import Vehicle from '../models/vehicleModel.js';
 import Person from '../models/personModel.js';
 import Parking from '../models/parkingModel.js';
+import { StatusCodes } from 'http-status-codes';
 
 export const createParking = async (parkingData) => {
     try {

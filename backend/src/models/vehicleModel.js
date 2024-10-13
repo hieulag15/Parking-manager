@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators.js';
 
 const { Schema } = mongoose;
 const ObjectId = mongoose.Types.ObjectId;
@@ -10,8 +9,8 @@ export const VEHICLE_COLLECTION_NAME = 'vehicles';
 
 const vehicleSchema = new Schema({
   driverId: {
-    type: String,
-    match: [OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE],
+    type: ObjectId,
+    ref: 'people',
     default: null,
   },
   licenePlate: {

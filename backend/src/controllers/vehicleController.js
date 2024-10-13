@@ -10,25 +10,6 @@ export const createVehicle = async (req, res) => {
   }
 };
 
-export const getAllVehicles = async (req, res) => {
-  try {
-    const vehicles = await vehicleService.getAllVehicles();
-    res.status(StatusCodes.OK).json(vehicles);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicles: ${error.message}` });
-  }
-};
-
-export const getVehicleById = async (req, res) => {
-  try {
-    const { _id } = req.query;
-    const vehicle = await vehicleService.getVehicleById(_id);
-    res.status(StatusCodes.OK).json(vehicle);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicle: ${error.message}` });
-  }
-};
-
 export const updateVehicle = async (req, res) => {
   try {
     const updatedData = req.body;
@@ -69,8 +50,6 @@ export const deleteManyVehicles = async (req, res) => {
 
 export const vehicleController = {
   createVehicle,
-  getAllVehicles,
-  getVehicleById,
   updateVehicle,
   deleteVehicle,
   deleteAllVehicles,

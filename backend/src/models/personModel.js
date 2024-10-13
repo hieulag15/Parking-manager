@@ -143,7 +143,7 @@ const createMany = async (data) => {
 
 const createDriver = async (data, licenePlate, job, department) => {
   try {
-    const vehicle = await vehicleModel.findOneByLicenePlate(licenePlate);
+    const vehicle = await vehicleModel.findByLicenePlate(licenePlate);
     if (!vehicle) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -351,6 +351,27 @@ const updateDriver = async (_id, data, licenePlate, job, department) => {
   }
 };
 
+const addNewVehicle = async (_id, data) => {
+  try {
+    const person = await Person.findById(_id);
+    if (!person) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "Person not found",
+        "Not found",
+        "BR_person_1"
+      );
+    }
+
+    const newVehicle = await vehicleModel.createNew(data);
+    const vehicleId = newVehicle.insertedId;
+    person.driver.arrayvehicleId.push(vehicleId);
+    return person;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
 const deleteUser = async (_id, role) => {
   try {
     const result = await Person.deleteOne({ _id: _id, "account.role": role });
@@ -410,6 +431,7 @@ const deleteDrivers = async (_ids) => {
 export const personModel = {
   createNew,
   createMany,
+  createDriver,
   findByUserName,
   findById,
   updateUser,
@@ -419,6 +441,7 @@ export const personModel = {
   deleteDriver,
   deleteDrivers,
   updateDriver,
+  addNewVehicle,
 };
 
 export default Person;

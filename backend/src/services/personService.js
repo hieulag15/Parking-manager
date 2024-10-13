@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from 'jsonwebtoken'
 import { env } from "../config/enviroment.js";
-import { vehicleModel } from "~/models/vehicleModel.js";
+import { vehicleModel } from "../models/vehicleModel.js";
 import { vehicleService } from "./vehicleService.js";
 
 

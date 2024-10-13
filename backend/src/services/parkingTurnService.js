@@ -3,28 +3,33 @@ import ParkingTurn from '../models/parkingTurnModel.js';
 import Vehicle from '../models/vehicleModel.js';
 import Parking from '../models/parkingModel.js';
 import ApiError from '../utils/ApiError.js';
+import { StatusCodes } from 'http-status-codes';
 
 export const createParkingTurn = async (data) => {
     try {
         const vehicleExists = await Vehicle.exists({ _id: data.vehicleId });
         const parkingExists = await Parking.exists({ _id: data.parkingId }); //zone là parkingId của collection parking
 
-        if (!vehicleExists || !parkingExists) {
-            throw new Error('Vehicle or Parking not found');
+        if (!vehicleExists) {
+            throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
+        }
+
+        if (!parkingExists) {
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
         }
 
         // Kiểm tra xe có trong bãi chưa
         const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
 
         if (vehicleInParking) {
-            throw new Error('Vehicle is already in parking turn');
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi', 'Not Created', 'BR_parking_3');
         }
 
         // Kiểm tra slot có trống không
         const slotBlank = await isSlotBlank(data.parkingId, data.position);
 
         if (!slotBlank) {
-            throw new Error('Chỗ đỗ xe đã được sử dụng');
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
         }
 
         // Tạo tài liệu parkingTurn mới
@@ -42,7 +47,7 @@ export const createParkingTurn = async (data) => {
 
         return newParkingTurn;
     } catch (error) {
-        throw new Error(`Error creating parking turn: ${error.message}`);
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tạo lượt đỗ không thành công', 'Not Created', 'BR_parking_3');
     }
 }
 
@@ -50,6 +55,6 @@ export const findVehicleInParkingTurn = async (vehicleId) => {
     try {
         return await ParkingTurn.findOne({ vehicleId, end: null }); // thì xe có trong bãi
     } catch (error) {
-        throw new Error(`Error finding vehicle in parking turn: ${error.message}`);
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tìm kiếm xe trong bãi thất bại', 'Not Created', 'BR_parking_3');
     }
 }

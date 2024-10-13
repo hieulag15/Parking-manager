@@ -4,9 +4,7 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from 'jsonwebtoken'
 import { env } from "../config/enviroment.js";
-import { vehicleModel } from "../models/vehicleModel.js";
 import { vehicleService } from "./vehicleService.js";
-
 
 const generateAccessToken = (user) => {
   return jwt.sign(
@@ -204,9 +202,9 @@ const createMany = async (_data) => {
 const createDriver = async (data) => {
   try {
     let { licenePlate, job, department, ...other} = data;
-    let vehicle = await vehicleModel.findByLicensePlate(licenePlate);
+    let vehicle = await vehicleService.findByLicensePlate(licenePlate);
     if (!vehicle) {
-      vehicle = await vehicleModel.createNew({ licenePlate: licenePlate});
+      vehicle = await vehicleService.createNew({ licenePlate: licenePlate});
       if (vehicle.acknowledge == false) {
         throw new ApiError(
           StatusCodes.INTERNAL_SERVER_ERROR,

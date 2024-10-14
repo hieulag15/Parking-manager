@@ -93,74 +93,6 @@ personSchema.plugin(mongoose_delete, {
 
 const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema);
 
-const createNew = async (data) => {
-  try {
-    const check = await Person.findOne({ account: data.account });
-    if (check) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        "Account already exists",
-        "Not found"
-      );
-    }
-
-    // Thêm thông tin driver
-    const newPerson = await Person.create(data);
-
-    if (data.driver && Array.isArray(data.driver.vehicles)) {
-      for (const vehicleData of data.driver.vehicles) {
-        const vehicle = await vehicleService.findByLicensePlate(vehicleData.licensePlate);
-        if (!vehicle) {
-          const newVehicle = await vehicleService.createNew({ driverId: newPerson._id, ...vehicleData});
-          await addNewVehicle(newPerson._id, newVehicle._id);
-        } else {
-          await addNewVehicle(newPerson._id, vehicle._id);
-        }
-      }
-    }
-
-    return Person.findById(newPerson._id);
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else if (error.message.includes("E11000 duplicate key")) {
-      throw new ApiError(
-        error.statusCode,
-        "Trùng SĐT hoặc gmail",
-        "Email_1",
-        "Email_1"
-      );
-    } else
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message,
-        "Email_1",
-        "Email_1"
-      );
-  }
-};
-
-const createMany = async (data) => {
-  try {
-    const createMany = await Person.insertMany(data, { ordered: true });
-    return createMany;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
 const createDriver = async (data, licenePlate, job, department) => {
   try {
     const vehicle = await vehicleService.findByLicensePlate(licenePlate);
@@ -207,93 +139,6 @@ const createDriver = async (data, licenePlate, job, department) => {
     return createNewDriver;
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
-const findByUserName = async (data) => {
-  try {
-    const findUser = await Person.findOne({
-      "account.username": data.username,
-    });
-    return findUser;
-  } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
-const findById = async (id) => {
-  try {
-    const findById = await Person.findOne({ _id: id });
-    return findById;
-  } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
-const updateUser = async (_id, data) => {
-  delete data._id;
-  delete data.driver;
-
-  delete data.cratedAt;
-  data.updateAt = Date.now();
-  try {
-    const updateOperation = {
-      $set: {
-        ...data,
-      },
-    };
-    const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
-      updateOperation,
-      { new: true }
-    );
-    return update;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else if (
-      error.message.includes("Plan executor error during findAndModify")
-    ) {
-      throw new ApiError(
-        error.statusCode,
-        "Trùng SDT hoặc gmail",
-        "Email_1",
-        "Email_1"
-      );
-    } else {
-      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-    }
-  }
-};
-
-const updateAvatar = async (_id, image) => {
-  try {
-    const updateOperation = {
-      $set: {
-        avatar: image,
-        updatedAt: Date.now(),
-      },
-    };
-    const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
-      updateOperation,
-      { new: true }
-    );
-    return update;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };
 
@@ -371,48 +216,6 @@ const updateDriver = async (_id, data, licenePlate, job, department) => {
   }
 };
 
-const addNewVehicle = async (personId, vehicleId) => {
-  try {
-    const person = await Person.findById(personId);
-    if (!person) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        "Person not found",
-        "Not found",
-        "BR_person_1"
-      );
-    }
-
-    person.driver.vehicleIds.push(vehicleId);
-    person.save();
-    return person;
-  } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-}
-
-const deleteUser = async (_id, role) => {
-  try {
-    const result = await Person.deleteOne({ _id: _id, "account.role": role });
-    return result;
-  } catch (err) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err.message);
-  }
-};
-
-const deleteAll = async () => {
-  try {
-    const result = await Person.deleteMany({
-      account: { $exists: true },
-      "account.username": { $ne: "admin" },
-    });
-    return result;
-  } catch (err) {
-    if (err.type && err.code)
-      throw new ApiError(err.statusCode, err.message, err.type, err.code);
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err.message);
-  }
-};
 
 const deleteDriver = async (_id) => {
   try {
@@ -448,19 +251,10 @@ const deleteDrivers = async (_ids) => {
 }
 
 export const personModel = {
-  createNew,
-  createMany,
   createDriver,
-  findByUserName,
-  findById,
-  updateUser,
-  updateAvatar,
-  deleteUser,
-  deleteAll,
   deleteDriver,
   deleteDrivers,
   updateDriver,
-  addNewVehicle,
 };
 
 export default Person;

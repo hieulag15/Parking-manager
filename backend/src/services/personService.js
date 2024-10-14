@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import Person, { personModel } from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 import { env } from "../config/enviroment.js";
 import { vehicleService } from "./vehicleService.js";
 
@@ -15,7 +15,7 @@ const generateAccessToken = (user) => {
       role: user.account.role,
     },
     env.JWT_ACCESS_KEY,
-    { expiresIn: '2h' },
+    { expiresIn: "2h" }
   );
 };
 
@@ -28,7 +28,7 @@ const generateRefreshToken = (user) => {
       role: user.account.role,
     },
     env.JWT_REFRESH_KEY,
-    { expiresIn: '2d' },
+    { expiresIn: "2d" }
   );
 };
 
@@ -36,21 +36,24 @@ const refreshToken = async (req, res) => {
   try {
     const refreshToken = req.cookie.refreshToken;
     if (!refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authenticated');
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authenticated");
     }
     //
 
     jwt.verify(refreshToken, env.JWT_REFRESH_KEY, (err, user) => {
       if (err) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authenticated');
+        throw new ApiError(
+          StatusCodes.UNAUTHORIZED,
+          "You are not authenticated"
+        );
       }
       const newAccessToken = generateAccessToken(user);
       const newRefreshToken = generateRefreshToken(user);
-      res.cookie('refreshToken', newRefreshToken, {
+      res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        path: '/',
+        path: "/",
         sercure: false,
-        sametime: 'strict',
+        sametime: "strict",
       });
       return newAccessToken;
     });
@@ -64,14 +67,14 @@ const checkToken = async (req, res) => {
   try {
     const token = req.headers.authorization;
     if (token) {
-      const accessToken = token.split(' ')[1];
+      const accessToken = token.split(" ")[1];
       jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, user) => {
         if (err) {
           throw new ApiError(
             StatusCodes.UNAUTHORIZED,
-            { message: 'Token không hợp lệ' },
-            { type: 'auth' },
-            { code: 'BR_auth' },
+            { message: "Token không hợp lệ" },
+            { type: "auth" },
+            { code: "BR_auth" }
           );
         }
         user1 = user;
@@ -80,9 +83,9 @@ const checkToken = async (req, res) => {
     } else {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
-        { message: 'Bạn chưa được xác thực' },
-        { type: 'auth' },
-        { code: 'BR_auth' },
+        { message: "Bạn chưa được xác thực" },
+        { type: "auth" },
+        { code: "BR_auth" }
       );
     }
   } catch (error) {
@@ -93,7 +96,7 @@ const checkToken = async (req, res) => {
 const login = async (req, res) => {
   try {
     const data = req.body;
-    const user = await Person.findOne({ 'account.username': data.username });
+    const user = await Person.findOne({ "account.username": data.username });
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -102,7 +105,10 @@ const login = async (req, res) => {
         "BR_person_1"
       );
     }
-    const isMatch = await bcrypt.compare(req.body.password, user.account.password);
+    const isMatch = await bcrypt.compare(
+      req.body.password,
+      user.account.password
+    );
     if (!isMatch) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -113,15 +119,15 @@ const login = async (req, res) => {
     }
     const accessToken = generateRefreshToken(user);
     const refreshToken = generateRefreshToken(user);
-    
+
     const userObject = user.toObject();
     delete userObject.account.password;
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      path: '/',  
+      path: "/",
       sercure: false,
-      sametime: 'strict',
+      sametime: "strict",
     });
 
     return { person: userObject, accessToken };
@@ -133,7 +139,7 @@ const login = async (req, res) => {
       "BR_person_3"
     );
   }
-}
+};
 
 const changePassword = async (req, res) => {
   try {
@@ -148,7 +154,10 @@ const changePassword = async (req, res) => {
       );
     }
 
-    const validatePasswords = await bcrypt.compare(data.password, user.account.password)
+    const validatePasswords = await bcrypt.compare(
+      data.password,
+      user.account.password
+    );
     if (!validatePasswords) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -172,13 +181,22 @@ const changePassword = async (req, res) => {
       );
     else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
-}
+};
 
 const createUser = async (data) => {
   try {
+    const check = await Person.findOne({ account: data.account });
+    if (check) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "Account already exists",
+        "Not found"
+      );
+    }
+
     const hashed = await hashPassword(data.account.password);
     data.account.password = hashed;
-    const createUser = await personModel.createNew(data);
+    const createUser = await Person.create(data);
     if (createUser.acknowledge == false) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -186,6 +204,24 @@ const createUser = async (data) => {
         "Not create",
         "BR_person_2"
       );
+    }
+
+    //update driver
+    if (data.driver && Array.isArray(data.driver.vehicles)) {
+      for (const vehicleData of data.driver.vehicles) {
+        const vehicle = await vehicleService.findByLicensePlate(
+          vehicleData.licensePlate
+        );
+        if (!vehicle) {
+          const newVehicle = await vehicleService.createNew({
+            driverId: createUser._id,
+            ...vehicleData,
+          });
+          await addNewVehicle(createUser._id, newVehicle._id);
+        } else {
+          await addNewVehicle(createUser._id, vehicle._id);
+        }
+      }
     }
     return createUser;
   } catch (error) {
@@ -196,7 +232,20 @@ const createUser = async (data) => {
         error.type,
         error.code
       );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    else if (error.message.includes("E11000 duplicate key")) {
+      throw new ApiError(
+        error.statusCode,
+        "Trùng SĐT hoặc gmail",
+        "Email_1",
+        "Email_1"
+      );
+    } else
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message,
+        "Email_1",
+        "Email_1"
+      );
   }
 };
 
@@ -205,7 +254,7 @@ const createUserM = async (data) => {
     const hashed = await hashPassword(data.account.password);
     data.account.password = hashed;
     data.account.role = "Manager";
-    const createUser = await personModel.createNewM(data);
+    const createUser = await Person.create(data);
     if (createUser.acknowledge == false) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -236,7 +285,7 @@ const createMany = async (_data) => {
         return el;
       })
     );
-    const createMany = await personModel.createMany(data);
+    const createMany = await Person.createMany(data);
     if (createMany.acknowledge == false) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -260,10 +309,10 @@ const createMany = async (_data) => {
 
 const createDriver = async (data) => {
   try {
-    let { licenePlate, job, department, ...other} = data;
+    let { licenePlate, job, department, ...other } = data;
     let vehicle = await vehicleService.findByLicensePlate(licenePlate);
     if (!vehicle) {
-      vehicle = await vehicleService.createNew({ licenePlate: licenePlate});
+      vehicle = await vehicleService.createNew({ licenePlate: licenePlate });
       if (vehicle.acknowledge == false) {
         throw new ApiError(
           StatusCodes.INTERNAL_SERVER_ERROR,
@@ -274,7 +323,12 @@ const createDriver = async (data) => {
       }
     }
 
-    const createDriver = await personModel.createDriver(other, licenePlate, job, department)
+    const createDriver = await personModel.createDriver(
+      other,
+      licenePlate,
+      job,
+      department
+    );
     if (createDriver.acknowledge == false) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -294,11 +348,22 @@ const createDriver = async (data) => {
       );
     else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
-} 
+};
+
+const findByUserName = async (username) => {
+  try {
+    const findUser = await Person.findOne({
+      "account.username": username,
+    });
+    return findUser;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 const findById = async (_id) => {
   try {
-    const user = await personModel.findById(_id);
+    const user = await Person.findById(_id);
     if (user == null) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -320,147 +385,166 @@ const findById = async (_id) => {
   }
 };
 
-const updateUser = async (_id, params) => {
-    try {
-        const user = await personModel.updateUser(_id, params);
-        console.log('id service: ' + _id);
-        if (user == null) {
-            throw new ApiError(
-                StatusCodes.NOT_FOUND,
-                "User not found",
-                "Not found",
-                "BR_person_1"
-            );
-        }
-        return user;
-    } catch (error) {
-        if (error.type && error.code)
-            throw new ApiError(
-                error.statusCode,
-                error.message,
-                error.type,
-                error.code
-            );
-        else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+const updateUser = async (_id, data) => {
+  data.updateAt = Date.now();
+  try {
+    const updateOperation = {
+      $set: {
+        ...data,
+      },
+    };
+    const update = await Person.findOneAndUpdate(
+      { _id: new ObjectId(_id) },
+      updateOperation,
+      { new: true }
+    );
+    if (update == null) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "User not found",
+        "Not found",
+        "BR_person_1"
+      );
     }
-}
+    return update;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 const updateAvatar = async (_id, image) => {
-    try {
-      console.log("id service: " + _id)
-        const user = await personModel.updateAvatar(_id, image);
-        if (users == null) {
-            throw new ApiError(
-                StatusCodes.NOT_FOUND,
-                "User not found",
-                "Not found",
-                "BR_person_1"
-            );
-        }
-        return user;
-    } catch (error) {
-        if (error.type && error.code)
-            throw new ApiError(
-                error.statusCode,
-                error.message,
-                error.type,
-                error.code
-            );
-        else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  try {
+    const updateOperation = {
+      $set: {
+        avatar: image,
+        updatedAt: Date.now(),
+      },
+    };
+    const update = await Person.findOneAndUpdate(
+      { _id: new ObjectId(_id) },
+      updateOperation,
+      { new: true }
+    );
+    if (update == null) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "User not found",
+        "Not found",
+        "BR_person_1"
+      );
     }
-}
+    return update;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 const hashPassword = async (password) => {
-    const salt = await bcrypt.genSalt(10);
-    return await bcrypt.hash(password, salt);
-}
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
+
+const addNewVehicle = async (personId, vehicleId) => {
+  try {
+    const person = await Person.findById(personId);
+    if (!person) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "Person not found",
+        "Not found",
+        "BR_person_1"
+      );
+    }
+
+    person.driver.vehicleIds.push(vehicleId);
+    person.save();
+    return person;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 const deleteUser = async (_id, role) => {
-    try {
-        const user = await personModel.deleteUser(_id, role);
-        if (user == false) {
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                "Delete user failed",
-                "Not Deleted",
-                "BR_person_4"
-            );
-        }
-        return user;
-    } catch (error) {
-        if (error.type && error.code)
-            throw new ApiError(
-                error.statusCode,
-                error.message,
-                error.type,
-                error.code
-            );
-        else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  try {
+    const result = await Person.deleteOne({ _id: _id, "account.role": role });
+    if (result == false) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Delete user failed",
+        "Not Deleted",
+        "BR_person_4"
+      );
     }
-}
+    return result;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 const deleteAll = async () => {
-    try {
-        const users = await personModel.deleteAll();
-        if (users == false) {
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                "Delete all users failed",
-                "Not Deleted",
-                "BR_person_4"
-            );
-        }
-        return users;
-    } catch (error) {
-        if (error.type && error.code)
-            throw new ApiError(
-                error.statusCode,
-                error.message,
-                error.type,
-                error.code
-            );
-        else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  try {
+    const result = await Person.deleteMany({
+      account: { $exists: true },
+      "account.username": { $ne: "admin" },
+    });
+    if (result == false) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Delete all users failed",
+        "Not Deleted",
+        "BR_person_4"
+      );
     }
-}
-
-const deleteMany = async (ids, role) => {
-    try {
-        const users = await personModel.deleteMany(ids, role);
-        if (users == false) {
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                "Delete many users failed",
-                "Not Deleted",
-                "BR_person_4"
-            );
-        }
-        return users;
-    } catch (error) {
-        if (error.type && error.code)
-            throw new ApiError(
-                error.statusCode,
-                error.message,
-                error.type,
-                error.code
-            );
-        else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-    }
-}
+    return result;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(
+        error.statusCode,
+        error.message,
+        error.type,
+        error.code
+      );
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
 
 export const personService = {
-    createUser,
-    createUserM,
-    createMany,
-    findById,
-    updateUser,
-    updateAvatar,
-    deleteUser,
-    deleteAll,
-    deleteMany,
-    login,
-    generateAccessToken,
-    generateRefreshToken,
-    refreshToken,
-    changePassword,
-    checkToken,
-}
+  createUser,
+  createUserM,
+  createMany,
+  findById,
+  updateUser,
+  updateAvatar,
+  deleteUser,
+  deleteAll,
+  login,
+  generateAccessToken,
+  generateRefreshToken,
+  refreshToken,
+  changePassword,
+  checkToken,
+  addNewVehicle,
+  findByUserName,
+  createDriver,
+};

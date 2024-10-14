@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { personModel } from "../models/personModel.js";
+import Person, { personModel } from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from 'jsonwebtoken'
@@ -32,10 +32,68 @@ const generateRefreshToken = (user) => {
   );
 };
 
+const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookie.refreshToken;
+    if (!refreshToken) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authenticated');
+    }
+    //
+
+    jwt.verify(refreshToken, env.JWT_REFRESH_KEY, (err, user) => {
+      if (err) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authenticated');
+      }
+      const newAccessToken = generateAccessToken(user);
+      const newRefreshToken = generateRefreshToken(user);
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        path: '/',
+        sercure: false,
+        sametime: 'strict',
+      });
+      return newAccessToken;
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+const checkToken = async (req, res) => {
+  let user1;
+  try {
+    const token = req.headers.authorization;
+    if (token) {
+      const accessToken = token.split(' ')[1];
+      jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, user) => {
+        if (err) {
+          throw new ApiError(
+            StatusCodes.UNAUTHORIZED,
+            { message: 'Token không hợp lệ' },
+            { type: 'auth' },
+            { code: 'BR_auth' },
+          );
+        }
+        user1 = user;
+      });
+      return user1;
+    } else {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        { message: 'Bạn chưa được xác thực' },
+        { type: 'auth' },
+        { code: 'BR_auth' },
+      );
+    }
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
 const login = async (req, res) => {
   try {
     const data = req.body;
-    const user = await personModel.findByUserName(data);
+    const user = await Person.findOne({ 'account.username': data.username });
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -55,8 +113,9 @@ const login = async (req, res) => {
     }
     const accessToken = generateRefreshToken(user);
     const refreshToken = generateRefreshToken(user);
-    delete user.account.password;
-
+    
+    const userObject = user.toObject();
+    delete userObject.account.password;
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -65,7 +124,7 @@ const login = async (req, res) => {
       sametime: 'strict',
     });
 
-    return { person: user, accessToken };
+    return { person: userObject, accessToken };
   } catch (e) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
@@ -401,5 +460,7 @@ export const personService = {
     login,
     generateAccessToken,
     generateRefreshToken,
+    refreshToken,
     changePassword,
+    checkToken,
 }

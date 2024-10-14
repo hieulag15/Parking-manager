@@ -111,7 +111,7 @@ const createNew = async (data) => {
       for (const vehicleData of data.driver.vehicles) {
         const vehicle = await vehicleService.findByLicensePlate(vehicleData.licensePlate);
         if (!vehicle) {
-          const newVehicle = await vehicleService.createNew(vehicleData);
+          const newVehicle = await vehicleService.createNew({ driverId: newPerson._id, ...vehicleData});
           await addNewVehicle(newPerson._id, newVehicle._id);
         } else {
           await addNewVehicle(newPerson._id, vehicle._id);

@@ -34,8 +34,8 @@ const createNew = async (data) => {
     // Tạo thông tin xe mới
     const newVehicle = await Vehicle.create(data);
 
-    // // Thêm thông tin xe mới vào thông tin chủ xe
-    // await personModel.addNewVehicle(data.driverId, newVehicle._id);
+    // Thêm thông tin xe mới vào thông tin chủ xe
+    await personModel.addNewVehicle(data.driverId, newVehicle._id);
 
     return newVehicle;
   } catch (error) {

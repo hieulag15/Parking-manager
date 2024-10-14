@@ -19,31 +19,31 @@ export const createParkingTurn = async (data) => {
         }
 
         // Kiểm tra xe có trong bãi chưa
-        const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
+        // const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
 
-        if (vehicleInParking) {
-            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi', 'Not Created', 'BR_parking_3');
-        }
+        // if (vehicleInParking) {
+        //     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi', 'Not Created', 'BR_parking_3');
+        // }
 
         // Kiểm tra slot có trống không
-        const slotBlank = await isSlotBlank(data.parkingId, data.position);
+        // const slotBlank = await isSlotBlank(data.parkingId, data.position);
 
-        if (!slotBlank) {
-            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
-        }
+        // if (!slotBlank) {
+        //     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
+        // }
 
         // Tạo tài liệu parkingTurn mới
         const newParkingTurn = await ParkingTurn.create(data);
 
-        // Cập nhật slot của parking
-        await updateSlot(data.parkingId, data.position, newParkingTurn._id)
-            .then(updatedParking => {
-                console.log('Parking slot updated:', updatedParking);
-            })
-            .catch(error => {
-                console.error('Error updating parking slot:', error);
-                throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
-            });
+        // // Cập nhật slot của parking
+        // await updateSlot(data.parkingId, data.position, newParkingTurn._id)
+        //     .then(updatedParking => {
+        //         console.log('Parking slot updated:', updatedParking);
+        //     })
+        //     .catch(error => {
+        //         console.error('Error updating parking slot:', error);
+        //         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
+        //     });
 
         return newParkingTurn;
     } catch (error) {

@@ -12,10 +12,4 @@ router.put('/:_id', vehicleController.updateVehicle);
 // Route to delete a specific vehicle
 router.delete('/:_id', vehicleController.deleteVehicle);
 
-// Route to delete all vehicles
-router.delete('/all', vehicleController.deleteAllVehicles);
-
-// Route to delete multiple vehicles
-router.delete('/many', vehicleController.deleteManyVehicles);
-
 export const vehicleRoute = router;

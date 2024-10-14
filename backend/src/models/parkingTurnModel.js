@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import mongoose_delete from 'mongoose-delete';
-import { VEHICLE_COLLECTION_NAME } from './vehicleModel.js';
-import { PARKING_COLLECTION_NAME, PARKING_TURN_COLLECTION_NAME } from '../constant/index.js';
+import { PARKING_COLLECTION_NAME, PARKING_TURN_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;

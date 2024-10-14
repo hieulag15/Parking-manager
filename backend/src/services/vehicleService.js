@@ -1,96 +1,50 @@
 import { StatusCodes } from "http-status-codes";
-import { vehicleModel } from "../models/vehicleModel.js"; // Adjust the import based on your project structure
+import Vehicle from "../models/vehicleModel.js"; // Adjust the import based on your project structure
 import ApiError from "../utils/ApiError.js";
+import { personModel } from "../models/personModel.js";
 
-// Create a new vehicle
-const createVehicle = async (data) => {
+const findByLicensePlate = async (licensePlate) => {
   try {
-    const existingVehicle = await vehicleModel.createNew(data);
-    if (!existingVehicle) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create vehicle",
-        "Not created",
-        "BR_vehicle_2"
-      );
-    }
-    return existingVehicle;
+    return await Vehicle.findOne({ licensePlate });
   } catch (error) {
-    handleError(error);
+    throw new Error(error.message);
   }
-};
+}
 
-// Update vehicle
-const updateVehicle = async (_id, params) => {
+const updateDriverId = async (id, driverId) => {
   try {
-    const vehicle = await vehicleModel.updateVehicle(_id, params);
-    if (!vehicle) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        "Vehicle not found",
-        "Not found",
-        "BR_vehicle_1"
-      );
-    }
-    return vehicle;
+    const updateVehicle = await Vehicle.updateOne(
+      { _id: new ObjectId(id)},
+      { $set: { driverId: new ObjectId(driverId) }}
+    )
+    return updateVehicle;
   } catch (error) {
-    handleError(error);
+    throw new Error(error.message);
   }
-};
+}
 
-// Delete vehicle
-const deleteVehicle = async (_id) => {
+const createNew = async (data) => {
   try {
-    const vehicle = await vehicleModel.deleteVehicle(_id);
-    if (!vehicle) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Delete vehicle failed",
-        "Not deleted",
-        "BR_vehicle_4"
-      );
+    // Kiểm tra đã có thông tin xe này chưa
+    const existingVehicle = await findByLicensePlate(data.licensePlate);
+    if (existingVehicle) {
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Đã có thông tin về xe này', 'Not Created', 'BR_parking_3');
     }
-    return vehicle;
-  } catch (error) {
-    handleError(error);
-  }
-};
 
-// Delete all vehicles
-const deleteAllVehicles = async () => {
-  try {
-    const vehicles = await vehicleModel.deleteAll();
-    if (!vehicles) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Delete all vehicles failed",
-        "Not deleted",
-        "BR_vehicle_4"
-      );
-    }
-    return vehicles;
-  } catch (error) {
-    handleError(error);
-  }
-};
+    // Tạo thông tin xe mới
+    const newVehicle = await Vehicle.create(data);
 
-// Error handling function
-const handleError = (error) => {
-  if (error.type && error.code) {
-    throw new ApiError(
-      error.statusCode,
-      error.message,
-      error.type,
-      error.code
-    );
-  } else {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    // Thêm thông tin xe mới vào thông tin chủ xe
+    await personModel.addNewVehicle(data.driverId, newVehicle._id);
+
+    return newVehicle;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tạo thông tin xe mới không thành công', 'Not Created', 'BR_parking_3');
   }
 };
 
 export const vehicleService = {
-  createVehicle,
-  updateVehicle,
-  deleteVehicle,
-  deleteAllVehicles,
+  createNew,
+  findByLicensePlate,
+  updateDriverId,
 };

@@ -2,10 +2,11 @@ import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
-import Vehicle, { vehicleModel } from "./vehicleModel.js";
+import Vehicle from "./vehicleModel.js";
+import { vehicleService } from "../services/vehicleService.js";
+import { PERSON_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 
 const ObjectId = mongoose.Types.ObjectId;
-export const PERSON_COLLECTION_NAME = "person";
 
 const personSchema = new mongoose.Schema(
   {
@@ -59,8 +60,12 @@ const personSchema = new mongoose.Schema(
       },
     },
     driver: {
-      arrayvehicleId: [
-        { type: mongoose.Schema.Types.ObjectId, required: true },
+      vehicleIds: [
+        { 
+          type: mongoose.Schema.Types.ObjectId,
+          ref: VEHICLE_COLLECTION_NAME,
+          required: true 
+        },
       ],
       job: {
         type: String,
@@ -98,8 +103,23 @@ const createNew = async (data) => {
         "Not found"
       );
     }
-    const createNew = await Person.create(data);
-    return createNew;
+
+    // Thêm thông tin driver
+    const newPerson = await Person.create(data);
+
+    if (data.driver && Array.isArray(data.driver.vehicles)) {
+      for (const vehicleData of data.driver.vehicles) {
+        const vehicle = await vehicleService.findByLicensePlate(vehicleData.licensePlate);
+        if (!vehicle) {
+          const newVehicle = await vehicleService.createNew({ driverId: newPerson._id, ...vehicleData});
+          await addNewVehicle(newPerson._id, newVehicle._id);
+        } else {
+          await addNewVehicle(newPerson._id, vehicle._id);
+        }
+      }
+    }
+
+    return Person.findById(newPerson._id);
   } catch (error) {
     if (error.type && error.code)
       throw new ApiError(
@@ -143,7 +163,7 @@ const createMany = async (data) => {
 
 const createDriver = async (data, licenePlate, job, department) => {
   try {
-    const vehicle = await vehicleModel.findByLicenePlate(licenePlate);
+    const vehicle = await vehicleService.findByLicensePlate(licenePlate);
     if (!vehicle) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -170,7 +190,7 @@ const createDriver = async (data, licenePlate, job, department) => {
     data.driver.vehicleId = mongoose.Types.ObjectId(data.driver.vehicleId);
     const createNewDriver = await Person.create(data);
 
-    const updateVehicle = await vehicleModel.updateDriverId(
+    const updateVehicle = await vehicleService.updateDriverId(
       data.driver.vehicleId,
       createNewDriver._id
     );
@@ -351,9 +371,9 @@ const updateDriver = async (_id, data, licenePlate, job, department) => {
   }
 };
 
-const addNewVehicle = async (_id, data) => {
+const addNewVehicle = async (personId, vehicleId) => {
   try {
-    const person = await Person.findById(_id);
+    const person = await Person.findById(personId);
     if (!person) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -363,9 +383,8 @@ const addNewVehicle = async (_id, data) => {
       );
     }
 
-    const newVehicle = await vehicleModel.createNew(data);
-    const vehicleId = newVehicle.insertedId;
-    person.driver.arrayvehicleId.push(vehicleId);
+    person.driver.vehicleIds.push(vehicleId);
+    person.save();
     return person;
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);

@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import Person, { personModel } from "../models/personModel.js";
+import Person from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
@@ -144,7 +144,7 @@ const login = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const data = req.body;
-    const user = await personModel.findOne(data);
+    const user = await Person.findOne(data);
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -169,7 +169,7 @@ const changePassword = async (req, res) => {
 
     const newPassword = hashPassword(data.newPassword);
     user.account.password = newPassword;
-    const updatePassword = await personModel.updateUser(user._id, user);
+    const updatePassword = await Person.updateOne(user._id, user);
     return updatePassword;
   } catch (error) {
     if (error.type && error.code)
@@ -276,80 +276,6 @@ const createUserM = async (data) => {
   }
 };
 
-const createMany = async (_data) => {
-  try {
-    const data = await Promise.all(
-      _data.map(async (el) => {
-        const hashed = await hashPassword(el.account.password);
-        el.account.password = hashed;
-        return el;
-      })
-    );
-    const createMany = await Person.createMany(data);
-    if (createMany.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create many users",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createMany;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
-const createDriver = async (data) => {
-  try {
-    let { licenePlate, job, department, ...other } = data;
-    let vehicle = await vehicleService.findByLicensePlate(licenePlate);
-    if (!vehicle) {
-      vehicle = await vehicleService.createNew({ licenePlate: licenePlate });
-      if (vehicle.acknowledge == false) {
-        throw new ApiError(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Can't create vehicle",
-          "Not create",
-          "BR_vehicle_2"
-        );
-      }
-    }
-
-    const createDriver = await personModel.createDriver(
-      other,
-      licenePlate,
-      job,
-      department
-    );
-    if (createDriver.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create driver",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createDriver;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
 const findByUserName = async (username) => {
   try {
     const findUser = await Person.findOne({
@@ -394,7 +320,7 @@ const updateUser = async (_id, data) => {
       },
     };
     const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
+      { _id: _id },
       updateOperation,
       { new: true }
     );
@@ -428,7 +354,7 @@ const updateAvatar = async (_id, image) => {
       },
     };
     const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
+      { _id: _id },
       updateOperation,
       { new: true }
     );
@@ -529,10 +455,30 @@ const deleteAll = async () => {
   }
 };
 
+const deleteDriver = async (driverId) => {
+  try {
+    const driver = await Person.findOne(
+      { _id: driverId,
+      driver: { $exists: true}
+      }
+    )
+    if (driver) {
+      if (driver.driver.vehicleIds.length > 0) {
+        const updateId = await Vehicle.deleteMany({ driverId });
+      } 
+    } else {
+      throw new ApiError('Driver not exist');
+    }
+    const result = await Person.deleteOne({ _id: driverId });
+    return result;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
 export const personService = {
   createUser,
   createUserM,
-  createMany,
   findById,
   updateUser,
   updateAvatar,
@@ -546,5 +492,5 @@ export const personService = {
   checkToken,
   addNewVehicle,
   findByUserName,
-  createDriver,
+  deleteDriver,
 };

@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import Vehicle from "../models/vehicleModel.js"; // Adjust the import based on your project structure
 import ApiError from "../utils/ApiError.js";
-import { personModel } from "../models/personModel.js";
+// import { personModel } from "../models/personModel.js";
 
 const findByLicensePlate = async (licensePlate) => {
   try {
@@ -35,7 +35,7 @@ const createNew = async (data) => {
     const newVehicle = await Vehicle.create(data);
 
     // Thêm thông tin xe mới vào thông tin chủ xe
-    await personModel.addNewVehicle(data.driverId, newVehicle._id);
+    // await personModel.addNewVehicle(data.driverId, newVehicle._id);
 
     return newVehicle;
   } catch (error) {

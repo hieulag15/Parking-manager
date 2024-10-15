@@ -29,8 +29,18 @@ export const deleteVehicle = async (req, res) => {
   }
 }
 
+export const getVehicles = async (req, res) => {
+  try {
+    const vehicles = await vehicleService.getVehicles();
+    res.status(StatusCodes.OK).json(vehicles);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicles: ${error.message}` });
+  }
+}
+
 export const vehicleController = {
   createVehicle,
   updateVehicle,
   deleteVehicle,
+  getVehicles
 }

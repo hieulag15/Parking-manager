@@ -7,36 +7,41 @@ import { StatusCodes } from 'http-status-codes';
 
 export const createParkingTurn = async (data) => {
     try {
-        const vehicleExists = await Vehicle.exists({ _id: data.vehicleId });
-        const parkingExists = await Parking.exists({ _id: data.parkingId }); //zone là parkingId của collection parking
+        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
+        const parking = await Parking.findOne({ zone: data.zone });
 
-        if (!vehicleExists) {
+        if (!vehicle) {
             throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
         }
 
         // // Kiểm tra xe có trong bãi chưa
-        const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
+        const vehicleInParking = await findVehicleInParkingTurn(vehicle._id);
 
         if (vehicleInParking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi');
         }
 
-        if (!parkingExists) {
+        if (!parking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
         }
 
         // Kiểm tra slot có trống không
-        const slotBlank = await isSlotBlank(data.parkingId, data.position);
+        const slotBlank = await isSlotBlank(parking._id, data.position);
 
         if (!slotBlank) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
         }
 
         // Tạo tài liệu parkingTurn mới
-        const newParkingTurn = await ParkingTurn.create(data);
+        const newParkingTurn = await ParkingTurn.create({
+            vehicleId: vehicle._id,
+            parkingId: parking._id,
+            position: data.position,
+            fee: data.fee
+        });
 
         // // Cập nhật slot của parking
-        await updateSlot(data.parkingId, data.position, newParkingTurn._id)
+        await updateSlot(parking._id, data.position, newParkingTurn._id)
             .then(updatedParking => {
                 console.log('Parking slot updated:', updatedParking);
             })

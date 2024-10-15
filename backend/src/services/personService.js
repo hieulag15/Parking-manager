@@ -68,22 +68,24 @@ const checkToken = async (req, res, next) => {
     if (!token) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
-        'Bạn chưa được xác thực',
-        'auth',
-        'BR_auth'
+        "Bạn chưa được xác thực",
+        "auth",
+        "BR_auth"
       );
     }
 
-    const accessToken = token.split(' ')[1];
+    const accessToken = token.split(" ")[1];
     const user = await new Promise((resolve, reject) => {
       jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, decoded) => {
         if (err) {
-          return reject(new ApiError(
-            StatusCodes.UNAUTHORIZED,
-            'Token không hợp lệ',
-            'auth',
-            'BR_auth'
-          ));
+          return reject(
+            new ApiError(
+              StatusCodes.UNAUTHORIZED,
+              "Token không hợp lệ",
+              "auth",
+              "BR_auth"
+            )
+          );
         }
         resolve(decoded);
       });
@@ -96,7 +98,7 @@ const checkToken = async (req, res, next) => {
       username: user.username,
       role: user.role,
       iat: user.iat,
-      exp: user.exp
+      exp: user.exp,
     };
     next();
   } catch (error) {
@@ -322,6 +324,57 @@ const findById = async (_id) => {
   }
 };
 
+const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
+  // Construct the regular expression pattern dynamically
+  let filter = {};
+  for (let [key, value] of Object.entries(params)) {
+    if (key === "licenePlate") {
+      key = "driver.vehicle." + key; // 'driver.vehicle.licenePlate'
+    }
+    if (key === "name") {
+      filter[key] = new RegExp(`${value}`, "i"); // case-insensitive for 'name'
+    } else {
+      filter[key] = new RegExp(`^${value}`, "i"); // case-insensitive starts with for other fields
+    }
+  }
+
+  try {
+    // Default pagination and sorting
+    pageSize = Number(pageSize) || 10;
+    pageIndex = Number(pageIndex) || 1;
+
+    const skip = (pageIndex - 1) * pageSize;
+
+    // Execute the query with filters, field selection, pagination, and sorting
+    const drivers = await PersonModel.find(
+      { driver: { $exists: true }, ...filter }, // Filter query
+      {
+        driver: 1, // Field selection: you can choose the fields you want to project
+        "driver.vehicle": 1,
+        createdAt: 1,
+      }
+    )
+      .limit(pageSize)
+      .skip(skip)
+      .sort({ createdAt: -1 }); // Sort by createdAt in descending order
+
+    // Count total documents matching the filter
+    const totalCount = await Person.countDocuments({
+      driver: { $exists: true },
+      ...filter,
+    });
+    const totalPage = Math.ceil(totalCount / pageSize);
+
+    return {
+      data: drivers,
+      totalCount,
+      totalPage,
+    };
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 const updateUser = async (_id, data) => {
   data.updateAt = Date.now();
   try {
@@ -468,24 +521,23 @@ const deleteAll = async () => {
 
 const deleteDriver = async (driverId) => {
   try {
-    const driver = await Person.findOne(
-      { _id: driverId,
-      driver: { $exists: true}
-      }
-    )
+    const driver = await Person.findOne({
+      _id: driverId,
+      driver: { $exists: true },
+    });
     if (driver) {
       if (driver.driver.vehicleIds.length > 0) {
         const updateId = await Vehicle.deleteMany({ driverId });
-      } 
+      }
     } else {
-      throw new ApiError('Driver not exist');
+      throw new ApiError("Driver not exist");
     }
     const result = await Person.deleteOne({ _id: driverId });
     return result;
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
-}
+};
 
 export const personService = {
   createUser,
@@ -504,4 +556,5 @@ export const personService = {
   addNewVehicle,
   findByUserName,
   deleteDriver,
+  findDriverByFilter,
 };

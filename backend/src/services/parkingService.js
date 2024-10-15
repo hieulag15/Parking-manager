@@ -35,7 +35,9 @@ export const getParkingByZone = async (zone) => {
 
       // thay parkingTurnId bằng parkingTurn
       const parkingWithPopulatedSlots = parking.toObject();
-        parkingWithPopulatedSlots.slots = parkingWithPopulatedSlots.slots.map(slot => {
+        parkingWithPopulatedSlots.slots = parkingWithPopulatedSlots.slots
+        .filter(slot => !slot.isBlank)
+        .map(slot => {
             if (slot.parkingTurnId) {
                 slot.parkingTurn = slot.parkingTurnId;
                 delete slot.parkingTurnId;
@@ -52,6 +54,14 @@ export const getParkingByZone = async (zone) => {
             }
             return slot;
         });
+
+        // Tính toán số lượng chỗ đậu xe không có người chiếm dụng
+        const totalSlots = parkingWithPopulatedSlots.slots.length;
+        const occupiedSlots = parkingWithPopulatedSlots.slots.filter(slot => slot.parkingTurn).length;
+        const unoccupiedSlots = totalSlots - occupiedSlots;
+
+        // Bổ sung trường unoccupied
+        parkingWithPopulatedSlots.unoccupied = unoccupiedSlots;
 
         return parkingWithPopulatedSlots;
     } catch (error) {
@@ -95,15 +105,11 @@ export const isSlotBlank = async (parkingId, position) => {
     );
 
     if (!parking) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Không có vị trí đỗ xe này', 'NotFound');
     }
 
     return parking.slots[0].isBlank;
   } catch (error) {
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      'Error checking parking slot',
-      'InternalServerError'
-    );
+    throw error
   }
 }

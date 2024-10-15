@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Button, Form, Image, Input, Layout, Radio, Row, Space } from 'antd';
 import LOGO from '~/assets/logo/full-logo.svg';
+import AppContext from '~/context';
 import { useNavigate } from 'react-router-dom';
 import { Content, Footer } from '~/views/layouts';
 
@@ -19,7 +20,34 @@ const roles = [
   // }
 ];
 
-function Authen() {
+function Authen({}) {
+  const { state, actions } = useContext(AppContext);
+  const { auth } = state;
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+
+  const onComplete = (type = 'error', content) => {
+    if (content) {
+      actions.onMess({ type, content });
+    }
+    setLoading(false);
+  };
+
+  const onFinish = (values) => {
+    const { username, password } = values;
+    setLoading(true);
+    actions.onLogin({ username, password, role: 'Admin', onComplete, onNoti: actions.onNoti });
+  };
+
+  const onFinishFailed = (errorInfo) => {};
+
+  useEffect(() => {
+    if (auth.isLogin) {
+      navigate('/');
+    }
+  }, [auth]);
+
   return (
     <Layout className="vh-100">
       <Content className="d-flex justify-content-center align-items-center w-100">
@@ -34,9 +62,8 @@ function Authen() {
                 width: 400
               }}
               initialValues={{ role: 'Admin' }}
-              // onFinish={onFinish}
-              // onFinishFailed={onFinishFailed}
-              >
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}>
               <Form.Item
                 name="role"
                 className="w-100 d-flex justify-content-center"
@@ -71,9 +98,7 @@ function Authen() {
               </Form.Item>
 
               <Form.Item>
-                <Button size="large" type="primary" htmlType="submit" block 
-                // loading={loading}
-                >
+                <Button size="large" type="primary" htmlType="submit" block loading={loading}>
                   Đăng nhập
                 </Button>
               </Form.Item>
@@ -81,7 +106,7 @@ function Authen() {
           </Row>
         </Space>
       </Content>
-      {/* <Footer /> */}
+      <Footer />
     </Layout>
   );
 }

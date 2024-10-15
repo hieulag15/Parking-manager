@@ -3,7 +3,7 @@ import { vehicleService } from "../services/vehicleService.js"; // Adjust the im
 
 export const createVehicle = async (req, res) => {
   try {
-    const newVehicle = await vehicleService.createVehicle(req.body);
+    const newVehicle = await vehicleService.createNew(req.body);
     res.status(StatusCodes.CREATED).json(newVehicle);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error creating vehicle: ${error.message}` });
@@ -27,31 +27,20 @@ export const deleteVehicle = async (req, res) => {
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error deleting vehicle: ${error.message}` });
   }
-};
+}
 
-export const deleteAllVehicles = async (req, res) => {
+export const getVehicles = async (req, res) => {
   try {
-    const result = await vehicleService.deleteAllVehicles();
-    res.status(StatusCodes.OK).json(result);
+    const vehicles = await vehicleService.getVehicles();
+    res.status(StatusCodes.OK).json(vehicles);
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error deleting all vehicles: ${error.message}` });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicles: ${error.message}` });
   }
-};
-
-export const deleteManyVehicles = async (req, res) => {
-  try {
-    const ids = req.body.ids;
-    const result = await vehicleService.deleteMany(ids);
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error deleting many vehicles: ${error.message}` });
-  }
-};
+}
 
 export const vehicleController = {
   createVehicle,
   updateVehicle,
   deleteVehicle,
-  deleteAllVehicles,
-  deleteManyVehicles,
-};
+  getVehicles
+}

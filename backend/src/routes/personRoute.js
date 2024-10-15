@@ -8,6 +8,7 @@ router.post('/', personController.createNew)
 router.put('/', personController.updateUser)
 router.delete('/', personController.deleteUser);
 
+router.get('/driver/filter', personController.findDriverByFilter);
 
 // router.route('/addMany')
 // .post(personController.createMany);

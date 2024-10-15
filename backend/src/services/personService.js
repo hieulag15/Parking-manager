@@ -276,80 +276,6 @@ const createUserM = async (data) => {
   }
 };
 
-const createMany = async (_data) => {
-  try {
-    const data = await Promise.all(
-      _data.map(async (el) => {
-        const hashed = await hashPassword(el.account.password);
-        el.account.password = hashed;
-        return el;
-      })
-    );
-    const createMany = await Person.createMany(data);
-    if (createMany.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create many users",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createMany;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
-const createDriver = async (data) => {
-  try {
-    let { licenePlate, job, department, ...other } = data;
-    let vehicle = await vehicleService.findByLicensePlate(licenePlate);
-    if (!vehicle) {
-      vehicle = await vehicleService.createNew({ licenePlate: licenePlate });
-      if (vehicle.acknowledge == false) {
-        throw new ApiError(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Can't create vehicle",
-          "Not create",
-          "BR_vehicle_2"
-        );
-      }
-    }
-
-    const createDriver = await personModel.createDriver(
-      other,
-      licenePlate,
-      job,
-      department
-    );
-    if (createDriver.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create driver",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createDriver;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
 const findByUserName = async (username) => {
   try {
     const findUser = await Person.findOne({
@@ -394,7 +320,7 @@ const updateUser = async (_id, data) => {
       },
     };
     const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
+      { _id: _id },
       updateOperation,
       { new: true }
     );
@@ -428,7 +354,7 @@ const updateAvatar = async (_id, image) => {
       },
     };
     const update = await Person.findOneAndUpdate(
-      { _id: new ObjectId(_id) },
+      { _id: _id },
       updateOperation,
       { new: true }
     );
@@ -553,7 +479,6 @@ const deleteDriver = async (driverId) => {
 export const personService = {
   createUser,
   createUserM,
-  createMany,
   findById,
   updateUser,
   updateAvatar,
@@ -567,6 +492,5 @@ export const personService = {
   checkToken,
   addNewVehicle,
   findByUserName,
-  createDriver,
   deleteDriver,
 };

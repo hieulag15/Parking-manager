@@ -20,17 +20,16 @@ const refreshToken = async (req, res, next) => {
       next(error)
     }
   }
-  
+
   const checkToken = async (req, res, next) => {
     try {
-      // Dieu huong sang tang Service
-      const refreshToken = await personService.checkToken(req, res)
-      // console('refreshToken')
-      res.status(StatusCodes.OK).json(refreshToken)
+      // Điều hướng sang tầng Service
+      await personService.checkToken(req, res, next);
+      res.status(StatusCodes.OK).json(req.user);
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
 export const authController = {
     login,

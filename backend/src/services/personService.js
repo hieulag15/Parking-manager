@@ -62,34 +62,45 @@ const refreshToken = async (req, res) => {
   }
 };
 
-const checkToken = async (req, res) => {
-  let user1;
+const checkToken = async (req, res, next) => {
   try {
     const token = req.headers.authorization;
-    if (token) {
-      const accessToken = token.split(" ")[1];
-      jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, user) => {
-        if (err) {
-          throw new ApiError(
-            StatusCodes.UNAUTHORIZED,
-            { message: "Token không hợp lệ" },
-            { type: "auth" },
-            { code: "BR_auth" }
-          );
-        }
-        user1 = user;
-      });
-      return user1;
-    } else {
+    if (!token) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
-        { message: "Bạn chưa được xác thực" },
-        { type: "auth" },
-        { code: "BR_auth" }
+        'Bạn chưa được xác thực',
+        'auth',
+        'BR_auth'
       );
     }
+
+    const accessToken = token.split(' ')[1];
+    const user = await new Promise((resolve, reject) => {
+      jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, decoded) => {
+        if (err) {
+          return reject(new ApiError(
+            StatusCodes.UNAUTHORIZED,
+            'Token không hợp lệ',
+            'auth',
+            'BR_auth'
+          ));
+        }
+        resolve(decoded);
+      });
+    });
+
+    // Gán thông tin người dùng vào req.user
+    req.user = {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      role: user.role,
+      iat: user.iat,
+      exp: user.exp
+    };
+    next();
   } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    next(error);
   }
 };
 

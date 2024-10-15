@@ -2,7 +2,6 @@ import { updateSlot, isSlotBlank } from '../services/parkingService.js';
 import ParkingTurn from '../models/parkingTurnModel.js';
 import Vehicle from '../models/vehicleModel.js';
 import Parking from '../models/parkingModel.js';
-import Person from '../models/personModel.js';
 import ApiError from '../utils/ApiError.js';
 import { StatusCodes } from 'http-status-codes';
 
@@ -15,16 +14,15 @@ export const createParkingTurn = async (data) => {
             throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
         }
 
-        if (!parkingExists) {
-            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
-        }
-
         // // Kiểm tra xe có trong bãi chưa
         const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
 
         if (vehicleInParking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi');
-            console.log('Xe đã ở trong bãi');
+        }
+
+        if (!parkingExists) {
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
         }
 
         // Kiểm tra slot có trống không
@@ -32,7 +30,6 @@ export const createParkingTurn = async (data) => {
 
         if (!slotBlank) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
-            console.log('Chỗ đỗ xe đã được sử dụng');
         }
 
         // Tạo tài liệu parkingTurn mới
@@ -47,6 +44,36 @@ export const createParkingTurn = async (data) => {
                 console.error('Error updating parking slot:', error);
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
+
+        return newParkingTurn;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+}
+
+// Đối với xe máy không cần position
+export const createParkingTurnWithoutPosition = async (data) => {
+    try {
+        const vehicleExists = await Vehicle.exists({ _id: data.vehicleId });
+        const parkingExists = await Parking.exists({ _id: data.parkingId });
+
+        if (!vehicleExists) {
+            throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
+        }
+
+        // // Kiểm tra xe có trong bãi chưa
+        const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
+
+        if (vehicleInParking) {
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi');
+        }
+
+        if (!parkingExists) {
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
+        }
+
+        // Tạo tài liệu parkingTurn mới
+        const newParkingTurn = await ParkingTurn.create(data);
 
         return newParkingTurn;
     } catch (error) {

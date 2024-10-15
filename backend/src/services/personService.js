@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import Person, { personModel } from "../models/personModel.js";
+import Person from "../models/personModel.js";
 import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
@@ -144,7 +144,7 @@ const login = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const data = req.body;
-    const user = await personModel.findOne(data);
+    const user = await Person.findOne(data);
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
@@ -169,7 +169,7 @@ const changePassword = async (req, res) => {
 
     const newPassword = hashPassword(data.newPassword);
     user.account.password = newPassword;
-    const updatePassword = await personModel.updateUser(user._id, user);
+    const updatePassword = await Person.updateOne(user._id, user);
     return updatePassword;
   } catch (error) {
     if (error.type && error.code)

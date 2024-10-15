@@ -529,6 +529,27 @@ const deleteAll = async () => {
   }
 };
 
+const deleteDriver = async (driverId) => {
+  try {
+    const driver = await Person.findOne(
+      { _id: driverId,
+      driver: { $exists: true}
+      }
+    )
+    if (driver) {
+      if (driver.driver.vehicleIds.length > 0) {
+        const updateId = await Vehicle.deleteMany({ driverId });
+      } 
+    } else {
+      throw new ApiError('Driver not exist');
+    }
+    const result = await Person.deleteOne({ _id: driverId });
+    return result;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
 export const personService = {
   createUser,
   createUserM,
@@ -547,4 +568,5 @@ export const personService = {
   addNewVehicle,
   findByUserName,
   createDriver,
+  deleteDriver,
 };

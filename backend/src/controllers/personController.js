@@ -125,6 +125,17 @@ const deleteDriver = async (req, res) => {
   }
 }
 
+const findDriverByFilter = async (req, res) => {
+  try {
+    const result = await personService.findDriverByFilter(req.query);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: `Error finding driver: ${error.message}` });
+  }
+}
+
 export const personController = {
   createNew,
   createManager,
@@ -137,4 +148,5 @@ export const personController = {
   deleteDriver,
   findByUserName,
   updateAvatar,
+  findDriverByFilter,
 };

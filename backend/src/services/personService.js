@@ -346,7 +346,7 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
     const skip = (pageIndex - 1) * pageSize;
 
     // Execute the query with filters, field selection, pagination, and sorting
-    const drivers = await PersonModel.find(
+    const drivers = await Person.find(
       { driver: { $exists: true }, ...filter }, // Filter query
       {
         driver: 1, // Field selection: you can choose the fields you want to project

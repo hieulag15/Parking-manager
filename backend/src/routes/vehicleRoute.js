@@ -6,6 +6,9 @@ const router = express.Router();
 // Route to create a new vehicle
 router.post('/', vehicleController.createVehicle);
 
+// Route to get all vehicles
+router.get('/', vehicleController.getVehicles);
+
 // Route to update a vehicle
 router.put('/:_id', vehicleController.updateVehicle);
 

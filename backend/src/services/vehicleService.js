@@ -43,8 +43,17 @@ const createNew = async (data) => {
   }
 };
 
+const getVehicles = async () => {
+  try {
+    return await Vehicle.find();
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 export const vehicleService = {
   createNew,
   findByLicensePlate,
   updateDriverId,
+  getVehicles
 };

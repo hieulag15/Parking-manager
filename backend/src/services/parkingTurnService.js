@@ -15,7 +15,7 @@ export const createParkingTurn = async (data) => {
         }
 
         // // Kiểm tra xe có trong bãi chưa
-        const vehicleInParking = await findVehicleInParkingTurn(vehicle._id);
+        const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
 
         if (vehicleInParking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi');
@@ -59,26 +59,30 @@ export const createParkingTurn = async (data) => {
 // Đối với xe máy không cần position
 export const createParkingTurnWithoutPosition = async (data) => {
     try {
-        const vehicleExists = await Vehicle.exists({ _id: data.vehicleId });
-        const parkingExists = await Parking.exists({ _id: data.parkingId });
+        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
+        const parking = await Parking.findOne({ zone: data.zone });
 
-        if (!vehicleExists) {
+        if (!vehicle) {
             throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
         }
 
         // // Kiểm tra xe có trong bãi chưa
-        const vehicleInParking = await findVehicleInParkingTurn(data.vehicleId);
+        const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
 
         if (vehicleInParking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi');
         }
 
-        if (!parkingExists) {
+        if (!parking) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về bãi đỗ này', 'Not Created', 'BR_parking_3');
         }
 
         // Tạo tài liệu parkingTurn mới
-        const newParkingTurn = await ParkingTurn.create(data);
+        const newParkingTurn = await ParkingTurn.create({
+            vehicleId: vehicle._id,
+            parkingId: parking._id,
+            fee: data.fee
+        });
 
         return newParkingTurn;
     } catch (error) {
@@ -86,9 +90,38 @@ export const createParkingTurnWithoutPosition = async (data) => {
     }
 }
 
-export const findVehicleInParkingTurn = async (vehicleId) => {
+export const outParking = async (data) => {
     try {
-        const vehicleInParking = await ParkingTurn.findOne({ vehicleId }); // thì xe có trong bãi
+
+        const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
+
+        if (!vehicleInParking) {
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe không ở trong bãi', 'Not Found', 'BR_parking_3');
+        }
+
+        // Cập nhật thời gian xe ra bãi
+        const updateEndTime = await ParkingTurn.findOneAndUpdate({ vehicleId: vehicleInParking.vehicleId }, { end: Date.now() }, { new: true });
+
+        // Cập nhật slot của parking
+        await updateSlot(vehicleInParking.parkingId, vehicleInParking.position, null)
+            .then(updatedParking => {
+                console.log('Parking slot updated:', updatedParking);
+            })
+            .catch(error => {
+                console.error('Error updating parking slot:', error);
+                throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
+            });
+
+        return updateEndTime;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+}
+
+export const findVehicleInParkingTurn = async (licensePlate) => {
+    const vehicle = await Vehicle.findOne({ licensePlate });
+    try {
+        const vehicleInParking = await ParkingTurn.findOne({ vehicleId: vehicle._id, end: null }); // thì xe có trong bãi
         return vehicleInParking;
     } catch (error) {
         // throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tìm kiếm xe trong bãi thất bại', 'Not Created', 'BR_parking_3');

@@ -1,14 +1,14 @@
 import express from "express";
-import { personController , createNew} from "../controllers/personController.js";
+import { personController } from "../controllers/personController.js";
 
 const router = express.Router();
 
-router.post('/', personController.createNew)
+router.post("/", personController.createNew);
 
-router.put('/', personController.updateUser)
-router.delete('/', personController.deleteUser);
+router.put("/", personController.updateUser);
+router.delete("/", personController.deleteUser);
 
-router.get('/driver/filter', personController.findDriverByFilter);
+// router.get("/driver/filter", personController.findDriverByFilter);
 
 // router.route('/addMany')
 // .post(personController.createMany);

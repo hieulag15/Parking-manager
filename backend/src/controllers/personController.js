@@ -116,7 +116,7 @@ const deleteAll = async (req, res) => {
 
 const deleteDriver = async (req, res) => {
   try {
-    const result = await personService.deleteDriver(req.query.driverId);
+    const result = await personService.deleteDriver(req.query._id);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res

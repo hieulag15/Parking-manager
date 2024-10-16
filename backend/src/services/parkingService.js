@@ -71,23 +71,42 @@ export const getParkingByZone = async (zone) => {
 
 export const updateSlot = async (parkingId, position, parkingTurnId) => {
     try {
-        const parking = await Parking.findOneAndUpdate(
-          { _id: parkingId, 'slots.position': position },
-          {
-            $set: {
-              'slots.$.parkingTurnId': parkingTurnId,
-              'slots.$.isBlank': false,
+        if (parkingTurnId) {
+          const parking = await Parking.findOneAndUpdate(
+            { _id: parkingId, 'slots.position': position },
+            {
+              $set: {
+                'slots.$.parkingTurnId': parkingTurnId,
+                'slots.$.isBlank': false,
+              },
+              $inc: { occupied: 1 },
             },
-            $inc: { occupied: 1 },
-          },
-          { new: true }
-        )
-
-        if (!parking) {
-          throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+            { new: true }
+          )
+  
+          if (!parking) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+          }
+      
+          return parking;
+        } else {
+          const parking = await Parking.findOneAndUpdate(
+            { _id: parkingId, 'slots.position': position },
+            {
+              $set: {
+                'slots.$.isBlank': true,
+              },
+              $inc: { occupied: -1 },
+            },
+            { new: true }
+          )
+  
+          if (!parking) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+          }
+      
+          return parking;
         }
-    
-        return parking;
     } catch (error) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,

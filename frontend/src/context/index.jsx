@@ -1,25 +1,36 @@
-import React from 'react';
-import useStore from './useStore';
+import React, { useReducer, createContext } from 'react';
+import {
+  logout,
+  checkAuthenSevice,
+  onLogin,
+  onMess,
+  onNoti,
+  onSetChangePassword,
+  onEventParking,
+  onAuthorize,
+  editProfile
+} from './actions';
+import initState from './initState';
+import reducer from './reducer';
 
-const App = ({ children }) => {
-  const state = useStore();
+const AppContext = createContext();
+
+export const AppProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, initState);
+
   const actions = {
-    logout: state.logout,
-    onLogin: state.onLogin,
-    checkAuthenSevice: state.checkAuthenSevice,
-    onMess: state.onMess,
-    onNoti: state.onNoti,
-    onSetChangePassword: state.onSetChangePassword,
-    onEventParking: state.onEventParking,
-    onAuthorize: state.onAuthorize,
-    editProfile: state.editProfile
+    logout: async (params) => dispatch(await logout(params)),
+    onLogin: async (params) => dispatch(await onLogin(params)),
+    checkAuthenSevice: async (params) => dispatch(await checkAuthenSevice(params)),
+    onMess: async (params) => dispatch(await onMess(params)),
+    onNoti: async (params) => dispatch(await onNoti(params)),
+    onSetChangePassword: async () => dispatch(await onSetChangePassword(state.onChangePassword)),
+    onEventParking: async (params) => dispatch(await onEventParking(params)),
+    onAuthorize: async (params) => dispatch(await onAuthorize(params)),
+    editProfile: async (params) => dispatch(await editProfile(state, params))
   };
 
-  return (
-    <AppContext.Provider value={{ state, actions }}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={{ state, dispatch, actions }}>{children}</AppContext.Provider>;
 };
 
-export default App;
+export default AppContext;

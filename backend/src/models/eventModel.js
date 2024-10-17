@@ -1,4 +1,4 @@
-import { VEHICLE_COLLECTION_NAME, PARKING_COLLECTION_NAME, EVENT_COLLECTION_NAME } from '../constant/index.js';
+import { PERSON_COLLECTION_NAME, EVENT_COLLECTION_NAME, PARKING_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 import mongoose_delete from 'mongoose-delete';
 import mongoose from 'mongoose';
 
@@ -7,16 +7,18 @@ const { ObjectId } = Schema.Types;
 
 // Định nghĩa schema
 const eventSchema = new Schema({
-  type: {
+  name: {
     type: String,
     required: true,
     enum: ['in', 'out'],
     trim: true,
   },
-  vehicleId: {
-    type: ObjectId,
+  zone: {
+    type: String,
     required: true,
-    ref: VEHICLE_COLLECTION_NAME,
+    minlength: 1,
+    maxlength: 2,
+    trim: true,
   },
   parkingId: {
     type: ObjectId,
@@ -28,6 +30,27 @@ const eventSchema = new Schema({
     maxlength: 6,
     trim: true,
   },
+  vehicleId: {
+    type: ObjectId,
+    required: true,
+    ref: VEHICLE_COLLECTION_NAME,
+  },
+  licensePlate: {
+    type: String,
+    required: true,
+    trim: true,
+    match: /^[0-9]{2}[A-Z]-[0-9]{4,5}$/,
+  },
+  driverId: {
+    type: ObjectId,
+    ref: PERSON_COLLECTION_NAME,
+    default: null,
+  },
+  driverName: {
+    type: String,
+    trim: true,
+    default: null,
+  }
 }, {
     timestamps: true
 });

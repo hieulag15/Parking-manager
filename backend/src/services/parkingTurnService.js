@@ -3,7 +3,9 @@ import ParkingTurn from '../models/parkingTurnModel.js';
 import Vehicle from '../models/vehicleModel.js';
 import Parking from '../models/parkingModel.js';
 import ApiError from '../utils/ApiError.js';
+import { eventService } from './eventService.js';
 import { StatusCodes } from 'http-status-codes';
+import e from 'express';
 
 export const createParkingTurn = async (data) => {
     try {
@@ -50,6 +52,16 @@ export const createParkingTurn = async (data) => {
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
 
+        // Tạo sự kiện vào bãi
+        const event = await eventService.create({
+            type: 'in',
+            vehicleId: vehicle._id,
+            parkingId: parking._id,
+            position: data.position,
+        });
+
+        await eventService.create(event);
+
         return newParkingTurn;
     } catch (error) {
         throw new Error(error.message);
@@ -84,6 +96,15 @@ export const createParkingTurnWithoutPosition = async (data) => {
             fee: data.fee
         });
 
+        // Tạo sự kiện vào bãi
+        const event = await eventService.create({
+            type: 'in',
+            vehicleId: vehicle._id,
+            parkingId: parking._id,
+        });
+
+        await eventService.create(event);
+
         return newParkingTurn;
     } catch (error) {
         throw new Error(error.message);
@@ -111,6 +132,16 @@ export const outParking = async (data) => {
                 console.error('Error updating parking slot:', error);
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
+
+        // Tạo sự kiện vào bãi
+        const event = await eventService.create({
+            type: 'out',
+            vehicleId: vehicleInParking.vehicleId,
+            parkingId: vehicleInParking.parkingId,
+            position: vehicleInParking.position,
+        });
+
+        await eventService.create(event);
 
         return updateEndTime;
     } catch (error) {

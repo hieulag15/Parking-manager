@@ -108,9 +108,18 @@ const getVehiclesOutParking = async () => {
   }
 }
 
+const getListVehicleByVehicleIds = async (ids) => {
+  try {
+    return await Vehicle.find({ _id: { $in: ids }});
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 export const vehicleService = {
   createNew,
   findByLicensePlate,
   updateDriverId,
-  getVehicles
+  getVehicles,
+  getListVehicleByVehicleIds,
 };

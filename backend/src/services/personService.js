@@ -531,7 +531,7 @@ const deleteDriver = async (driverId) => {
       // driver: { $exists: true },
     });
     if (driver) {
-      if (driver.driver.vehicleIds.length > 0) {
+      if (driver.driver.vehicleIds.length != 0) {
         await Vehicle.deleteMany({ driverId });
       }
     } else {

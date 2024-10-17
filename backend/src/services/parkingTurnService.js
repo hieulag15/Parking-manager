@@ -57,7 +57,7 @@ export const createParkingTurn = async (data) => {
         await eventService.create({
             name: 'in',
             zone: parking.zone,
-            parkingId: parking._id,
+            parkingTurnId: newParkingTurn._id,
             position: data.position,
             vehicleId: vehicle._id,
             licensePlate: vehicle.licensePlate,
@@ -103,7 +103,7 @@ export const createParkingTurnWithoutPosition = async (data) => {
         await eventService.create({
             name: 'in',
             zone: parking.zone,
-            parkingId: parking._id,
+            parkingTurnId: newParkingTurn._id,
             vehicleId: vehicle._id,
             licensePlate: vehicle.licensePlate,
             driverId: vehicle?.driverId?._id || null,
@@ -143,7 +143,7 @@ export const outParking = async (data) => {
         await eventService.create({
             name: 'out',
             zone: parking.zone,
-            parkingId: parking._id,
+            parkingTurnId: parkingTurn._id,
             position: parkingTurn.position,
             vehicleId: vehicle._id,
             licensePlate: vehicle.licensePlate,

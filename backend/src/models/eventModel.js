@@ -1,4 +1,4 @@
-import { PERSON_COLLECTION_NAME, EVENT_COLLECTION_NAME, PARKING_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
+import { PERSON_COLLECTION_NAME, EVENT_COLLECTION_NAME, PARKING_TURN_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 import mongoose_delete from 'mongoose-delete';
 import mongoose from 'mongoose';
 
@@ -20,10 +20,10 @@ const eventSchema = new Schema({
     maxlength: 2,
     trim: true,
   },
-  parkingId: {
+  parkingTurnId: {
     type: ObjectId,
     required: true,
-    ref: PARKING_COLLECTION_NAME,
+    ref: PARKING_TURN_COLLECTION_NAME,
   },
   position: {
     type: String,

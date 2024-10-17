@@ -69,7 +69,7 @@ export const getParkingByZone = async (zone) => {
     }
 }
 
-export const updateSlot = async (parkingId, position, parkingTurnId) => {
+export const updateSlot = async (parkingId, position, parkingTurnId = null) => {
     try {
         if (parkingTurnId) {
           const parking = await Parking.findOneAndUpdate(

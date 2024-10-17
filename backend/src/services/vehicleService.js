@@ -77,7 +77,13 @@ const getVehiclesInParking = async () => {
     const parkingObject = parkings.map(parking => parking.toObject());
     const slots = parkingObject.map(parking => parking.slots).flat();
     const blankSlots = slots.filter(slot => slot.isBlank === false);
-    const vehicles = blankSlots.map(slot => slot.parkingTurnId.vehicleId);
+    const vehicles = blankSlots.map(slot => {
+      if (slot.parkingTurnId && slot.parkingTurnId.vehicleId) {
+          return slot.parkingTurnId.vehicleId;
+      } else {
+          return null;
+      }
+    });
 
     return vehicles;
   } catch (error) {

@@ -5,11 +5,10 @@ import Parking from '../models/parkingModel.js';
 import ApiError from '../utils/ApiError.js';
 import { eventService } from './eventService.js';
 import { StatusCodes } from 'http-status-codes';
-import e from 'express';
 
 export const createParkingTurn = async (data) => {
     try {
-        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
+        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
         const parking = await Parking.findOne({ zone: data.zone });
 
         if (!vehicle) {
@@ -52,15 +51,19 @@ export const createParkingTurn = async (data) => {
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
 
-        // Tạo sự kiện vào bãi
-        const event = await eventService.create({
-            type: 'in',
-            vehicleId: vehicle._id,
+        
+
+        // // Tạo sự kiện vào bãi
+        await eventService.create({
+            name: 'in',
+            zone: parking.zone,
             parkingId: parking._id,
             position: data.position,
+            vehicleId: vehicle._id,
+            licensePlate: vehicle.licensePlate,
+            driverId: vehicle?.driverId?._id || null,
+            driverName: vehicle?.driverId?.name || 'Khách vãng lai',
         });
-
-        await eventService.create(event);
 
         return newParkingTurn;
     } catch (error) {
@@ -97,13 +100,15 @@ export const createParkingTurnWithoutPosition = async (data) => {
         });
 
         // Tạo sự kiện vào bãi
-        const event = await eventService.create({
-            type: 'in',
-            vehicleId: vehicle._id,
+        await eventService.create({
+            name: 'in',
+            zone: parking.zone,
             parkingId: parking._id,
+            vehicleId: vehicle._id,
+            licensePlate: vehicle.licensePlate,
+            driverId: vehicle?.driverId?._id || null,
+            driverName: vehicle?.driverId?.name || 'Khách vãng lai',
         });
-
-        await eventService.create(event);
 
         return newParkingTurn;
     } catch (error) {
@@ -113,18 +118,19 @@ export const createParkingTurnWithoutPosition = async (data) => {
 
 export const outParking = async (data) => {
     try {
+        const parkingTurn = await findVehicleInParkingTurn(data.licensePlate);
+        const parking = await Parking.findOne({ _id: parkingTurn.parkingId });
+        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
 
-        const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
-
-        if (!vehicleInParking) {
+        if (!parkingTurn) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe không ở trong bãi', 'Not Found', 'BR_parking_3');
         }
 
         // Cập nhật thời gian xe ra bãi
-        const updateEndTime = await ParkingTurn.findOneAndUpdate({ vehicleId: vehicleInParking.vehicleId }, { end: Date.now() }, { new: true });
+        await updateParkingTurnEndTime(vehicle._id);
 
         // Cập nhật slot của parking
-        await updateSlot(vehicleInParking.parkingId, vehicleInParking.position, null)
+        await updateSlot(parkingTurn.parkingId, parkingTurn.position)
             .then(updatedParking => {
                 console.log('Parking slot updated:', updatedParking);
             })
@@ -133,27 +139,49 @@ export const outParking = async (data) => {
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
 
-        // Tạo sự kiện vào bãi
-        const event = await eventService.create({
-            type: 'out',
-            vehicleId: vehicleInParking.vehicleId,
-            parkingId: vehicleInParking.parkingId,
-            position: vehicleInParking.position,
+        // Tạo sự kiện ra bãi
+        await eventService.create({
+            name: 'out',
+            zone: parking.zone,
+            parkingId: parking._id,
+            position: parkingTurn.position,
+            vehicleId: vehicle._id,
+            licensePlate: vehicle.licensePlate,
+            driverId: vehicle?.driverId?._id || null,
+            driverName: vehicle?.driverId?.name || 'Khách vãng lai',
         });
 
-        await eventService.create(event);
-
-        return updateEndTime;
     } catch (error) {
         throw new Error(error.message);
     }
 }
 
+const updateParkingTurnEndTime = async (vehicleId) => {
+    try {
+      const latestParkingTurn = await ParkingTurn.findOne({ vehicleId: vehicleId })
+        .sort({ createdAt: -1 });
+  
+      if (!latestParkingTurn) {
+        throw new Error('Parking turn not found');
+      }
+  
+      const updateEndTime = await ParkingTurn.findByIdAndUpdate(
+        latestParkingTurn._id,
+        { end: Date.now(), status: 'out' },
+        { new: true }
+      );
+  
+      return updateEndTime;
+    } catch (error) {
+      throw new Error(`Error updating parking turn end time: ${error.message}`);
+    }
+  };
+
 export const findVehicleInParkingTurn = async (licensePlate) => {
     const vehicle = await Vehicle.findOne({ licensePlate });
     try {
-        const vehicleInParking = await ParkingTurn.findOne({ vehicleId: vehicle._id, end: null }); // thì xe có trong bãi
-        return vehicleInParking;
+        const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }); // thì xe có trong bãi
+        return parkingTurn;
     } catch (error) {
         // throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tìm kiếm xe trong bãi thất bại', 'Not Created', 'BR_parking_3');
         console.log('Tìm kiếm xe trong bãi thất bại');

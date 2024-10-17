@@ -33,6 +33,11 @@ const parkingTurnSchema = new Schema({
       message: '{VALUE} is not an integer value'
     }
   },
+  status : {
+    type: String,
+    enum: ['in', 'out'],
+    default: 'in',
+  },
   start: {
     type: Date,
     default: Date.now,

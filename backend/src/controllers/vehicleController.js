@@ -1,16 +1,35 @@
 import { StatusCodes } from "http-status-codes";
-import { vehicleService } from "../services/vehicleService.js"; // Adjust the import based on your project structure
+import vehicleService from "../services/vehicleService.js";
 
-export const createVehicle = async (req, res) => {
+const getVehicle = async (req, res) => {
   try {
-    const newVehicle = await vehicleService.createNew(req.body);
+    const vehicle = await vehicleService.getVehicle(req.params._id);
+    res.status(StatusCodes.OK).json(vehicle);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicle: ${error.message}` });
+  }
+}
+
+const getVehicles = async (req, res) => {
+  try {
+    const status = req.query.status;
+    const vehicles = await vehicleService.getVehicles(status);
+    res.status(StatusCodes.OK).json(vehicles);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicles: ${error.message}` });
+  }
+}
+
+const createVehicle = async (req, res) => {
+  try {
+    const newVehicle = await vehicleService.create(req.body);
     res.status(StatusCodes.CREATED).json(newVehicle);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error creating vehicle: ${error.message}` });
   }
 };
 
-export const updateVehicle = async (req, res) => {
+const updateVehicle = async (req, res) => {
   try {
     const updatedData = req.body;
     const result = await vehicleService.updateVehicle(req.query._id, updatedData);
@@ -20,7 +39,7 @@ export const updateVehicle = async (req, res) => {
   }
 };
 
-export const deleteVehicle = async (req, res) => {
+const deleteVehicle = async (req, res) => {
   try {
     const result = await vehicleService.deleteVehicle(req.query._id);
     res.status(StatusCodes.OK).json(result);
@@ -29,18 +48,12 @@ export const deleteVehicle = async (req, res) => {
   }
 }
 
-export const getVehicles = async (req, res) => {
-  try {
-    const vehicles = await vehicleService.getVehicles();
-    res.status(StatusCodes.OK).json(vehicles);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicles: ${error.message}` });
-  }
-}
-
-export const vehicleController = {
+const vehicleController = {
+  getVehicle,
+  getVehicles,
   createVehicle,
   updateVehicle,
-  deleteVehicle,
-  getVehicles
+  deleteVehicle
 }
+
+export default vehicleController;

@@ -5,7 +5,7 @@ import Person from '../models/personModel.js';
 import Parking from '../models/parkingModel.js';
 import { StatusCodes } from 'http-status-codes';
 
-export const createParking = async (parkingData) => {
+const create = async (parkingData) => {
     try {
       const parking = await Parking.create(parkingData);
       return parking;
@@ -14,7 +14,7 @@ export const createParking = async (parkingData) => {
     }
 };
 
-export const getParkingByZone = async (zone) => {
+const getParkingByZone = async (zone) => {
     try {
       const parking = await Parking.findOne({ zone }).populate({
         path: 'slots.parkingTurnId',
@@ -69,25 +69,44 @@ export const getParkingByZone = async (zone) => {
     }
 }
 
-export const updateSlot = async (parkingId, position, parkingTurnId) => {
+const updateSlot = async (parkingId, position, parkingTurnId = null) => {
     try {
-        const parking = await Parking.findOneAndUpdate(
-          { _id: parkingId, 'slots.position': position },
-          {
-            $set: {
-              'slots.$.parkingTurnId': parkingTurnId,
-              'slots.$.isBlank': false,
+        if (parkingTurnId) {
+          const parking = await Parking.findOneAndUpdate(
+            { _id: parkingId, 'slots.position': position },
+            {
+              $set: {
+                'slots.$.parkingTurnId': parkingTurnId,
+                'slots.$.isBlank': false,
+              },
+              $inc: { occupied: 1 },
             },
-            $inc: { occupied: 1 },
-          },
-          { new: true }
-        )
-
-        if (!parking) {
-          throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+            { new: true }
+          )
+  
+          if (!parking) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+          }
+      
+          return parking;
+        } else {
+          const parking = await Parking.findOneAndUpdate(
+            { _id: parkingId, 'slots.position': position },
+            {
+              $set: {
+                'slots.$.isBlank': true,
+              },
+              $inc: { occupied: -1 },
+            },
+            { new: true }
+          )
+  
+          if (!parking) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Parking slot not found', 'NotFound');
+          }
+      
+          return parking;
         }
-    
-        return parking;
     } catch (error) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -97,7 +116,7 @@ export const updateSlot = async (parkingId, position, parkingTurnId) => {
     }
   }
 
-export const isSlotBlank = async (parkingId, position) => {
+const isSlotBlank = async (parkingId, position) => {
   try {
     const parking = await Parking.findOne(
       { _id: parkingId, 'slots.position': position },
@@ -113,3 +132,12 @@ export const isSlotBlank = async (parkingId, position) => {
     throw error
   }
 }
+
+const parkingService = {
+    create,
+    getParkingByZone,
+    updateSlot,
+    isSlotBlank,
+};
+
+export default parkingService;

@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { env } from "../config/enviroment.js";
-import { vehicleService } from "./vehicleService.js";
+import vehicleService from "./vehicleService.js";
+import Vehicle from "../models/vehicleModel.js";
 
 const generateAccessToken = (user) => {
   return jwt.sign(
@@ -91,7 +92,6 @@ const checkToken = async (req, res, next) => {
       });
     });
 
-    // Gán thông tin người dùng vào req.user
     req.user = {
       id: user.id,
       name: user.name,
@@ -130,7 +130,7 @@ const login = async (req, res) => {
         "BR_person_1"
       );
     }
-    const accessToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     const userObject = user.toObject();
@@ -325,40 +325,44 @@ const findById = async (_id) => {
 };
 
 const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
-  // Construct the regular expression pattern dynamically
+  // Khởi tạo đối tượng filter
   let filter = {};
+
   for (let [key, value] of Object.entries(params)) {
-    if (key === "licenePlate") {
-      key = "driver.vehicle." + key; // 'driver.vehicle.licenePlate'
-    }
     if (key === "name") {
-      filter[key] = new RegExp(`${value}`, "i"); // case-insensitive for 'name'
+      // Tìm kiếm không phân biệt chữ hoa chữ thường cho 'name'
+      filter[key] = new RegExp(`${value}`, "i"); // Đã sửa: thêm dấu `` để bao quanh ${value}
     } else {
-      filter[key] = new RegExp(`^${value}`, "i"); // case-insensitive starts with for other fields
+      // Tìm kiếm không phân biệt chữ hoa chữ thường cho các trường khác
+      filter[key] = new RegExp(`^${value}`, "i"); // Đã sửa: thêm dấu `` để bao quanh ${value}
     }
   }
 
   try {
-    // Default pagination and sorting
+    // Cài đặt phân trang và sắp xếp mặc định
     pageSize = Number(pageSize) || 10;
     pageIndex = Number(pageIndex) || 1;
 
     const skip = (pageIndex - 1) * pageSize;
 
-    // Execute the query with filters, field selection, pagination, and sorting
+    // Thực hiện truy vấn với các filters, field selection, pagination, và sorting
     const drivers = await Person.find(
-      { driver: { $exists: true }, ...filter }, // Filter query
+      { driver: { $exists: true }, ...filter }, // Truy vấn filter
       {
-        driver: 1, // Field selection: you can choose the fields you want to project
-        "driver.vehicle": 1,
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        address: 1,
+        driver: 1, // Chọn trường driver
         createdAt: 1,
       }
     )
       .limit(pageSize)
       .skip(skip)
-      .sort({ createdAt: -1 }); // Sort by createdAt in descending order
+      .sort({ createdAt: -1 }); // Sắp xếp theo createdAt giảm dần
 
-    // Count total documents matching the filter
+    // Đếm tổng số tài liệu phù hợp với filter
     const totalCount = await Person.countDocuments({
       driver: { $exists: true },
       ...filter,
@@ -523,11 +527,11 @@ const deleteDriver = async (driverId) => {
   try {
     const driver = await Person.findOne({
       _id: driverId,
-      driver: { $exists: true },
+      // driver: { $exists: true },
     });
     if (driver) {
       if (driver.driver.vehicleIds.length > 0) {
-        const updateId = await Vehicle.deleteMany({ driverId });
+        await Vehicle.deleteMany({ driverId });
       }
     } else {
       throw new ApiError("Driver not exist");
@@ -539,7 +543,7 @@ const deleteDriver = async (driverId) => {
   }
 };
 
-export const personService = {
+const personService = {
   createUser,
   createUserM,
   findById,
@@ -558,3 +562,5 @@ export const personService = {
   deleteDriver,
   findDriverByFilter,
 };
+
+export default personService;

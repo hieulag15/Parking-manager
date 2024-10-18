@@ -1,9 +1,5 @@
-import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
-import ApiError from "../utils/ApiError.js";
 import mongoose_delete from "mongoose-delete";
-import Vehicle from "./vehicleModel.js";
-import { vehicleService } from "../services/vehicleService.js";
 import { PERSON_COLLECTION_NAME, VEHICLE_COLLECTION_NAME } from '../constant/index.js';
 
 const ObjectId = mongoose.Types.ObjectId;

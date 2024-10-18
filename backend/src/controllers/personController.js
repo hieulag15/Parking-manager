@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { personService } from "../services/personService.js";
+import personService from "../services/personService.js";
 
 export const createNew = async (req, res) => {
   try {
@@ -116,7 +116,7 @@ const deleteAll = async (req, res) => {
 
 const deleteDriver = async (req, res) => {
   try {
-    const result = await personService.deleteDriver(req.query.driverId);
+    const result = await personService.deleteDriver(req.query._id);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res
@@ -136,7 +136,7 @@ const findDriverByFilter = async (req, res) => {
   }
 }
 
-export const personController = {
+const personController = {
   createNew,
   createManager,
   findById,
@@ -150,3 +150,5 @@ export const personController = {
   updateAvatar,
   findDriverByFilter,
 };
+
+export default personController;

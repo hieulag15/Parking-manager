@@ -92,7 +92,6 @@ const checkToken = async (req, res, next) => {
       });
     });
 
-    // Gán thông tin người dùng vào req.user
     req.user = {
       id: user.id,
       name: user.name,
@@ -131,7 +130,7 @@ const login = async (req, res) => {
         "BR_person_1"
       );
     }
-    const accessToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     const userObject = user.toObject();

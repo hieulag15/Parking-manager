@@ -1,12 +1,12 @@
-import { updateSlot, isSlotBlank } from '../services/parkingService.js';
+import parkingService from '../services/parkingService.js';
 import ParkingTurn from '../models/parkingTurnModel.js';
 import Vehicle from '../models/vehicleModel.js';
 import Parking from '../models/parkingModel.js';
 import ApiError from '../utils/ApiError.js';
-import { eventService } from './eventService.js';
+import eventService from './eventService.js';
 import { StatusCodes } from 'http-status-codes';
 
-export const createParkingTurn = async (data) => {
+const create = async (data) => {
     try {
         const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
         const parking = await Parking.findOne({ zone: data.zone });
@@ -27,7 +27,7 @@ export const createParkingTurn = async (data) => {
         }
 
         // Kiểm tra slot có trống không
-        const slotBlank = await isSlotBlank(parking._id, data.position);
+        const slotBlank = await parkingService.isSlotBlank(parking._id, data.position);
 
         if (!slotBlank) {
             throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Chỗ đỗ xe đã được sử dụng', 'Not Created', 'BR_parking_3');
@@ -42,7 +42,7 @@ export const createParkingTurn = async (data) => {
         });
 
         // // Cập nhật slot của parking
-        await updateSlot(parking._id, data.position, newParkingTurn._id)
+        await parkingService.updateSlot(parking._id, data.position, newParkingTurn._id)
             .then(updatedParking => {
                 console.log('Parking slot updated:', updatedParking);
             })
@@ -72,7 +72,7 @@ export const createParkingTurn = async (data) => {
 }
 
 // Đối với xe máy không cần position
-export const createParkingTurnWithoutPosition = async (data) => {
+const createWithoutPosition = async (data) => {
     try {
         const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate });
         const parking = await Parking.findOne({ zone: data.zone });
@@ -116,7 +116,7 @@ export const createParkingTurnWithoutPosition = async (data) => {
     }
 }
 
-export const outParking = async (data) => {
+const outParking = async (data) => {
     try {
         const parkingTurn = await findVehicleInParkingTurn(data.licensePlate);
         const parking = await Parking.findOne({ _id: parkingTurn.parkingId });
@@ -130,7 +130,7 @@ export const outParking = async (data) => {
         await updateParkingTurnEndTime(vehicle._id);
 
         // Cập nhật slot của parking
-        await updateSlot(parkingTurn.parkingId, parkingTurn.position)
+        await parkingService.updateSlot(parkingTurn.parkingId, parkingTurn.position)
             .then(updatedParking => {
                 console.log('Parking slot updated:', updatedParking);
             })
@@ -177,7 +177,7 @@ const updateParkingTurnEndTime = async (vehicleId) => {
     }
   };
 
-export const findVehicleInParkingTurn = async (licensePlate) => {
+const findVehicleInParkingTurn = async (licensePlate) => {
     const vehicle = await Vehicle.findOne({ licensePlate });
     try {
         const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }); // thì xe có trong bãi
@@ -187,3 +187,12 @@ export const findVehicleInParkingTurn = async (licensePlate) => {
         console.log('Tìm kiếm xe trong bãi thất bại');
     }
 }
+
+const parkingTurnService = {
+    create,
+    createWithoutPosition,
+    outParking
+}
+
+export default parkingTurnService;
+

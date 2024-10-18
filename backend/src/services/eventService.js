@@ -36,7 +36,9 @@ const findEvent = async ({ pageSize, pageIndex, ...params }) => {
       }
 };
 
-export const eventService = {
+const eventService = {
     create,
     findEvent
 };
+
+export default eventService;

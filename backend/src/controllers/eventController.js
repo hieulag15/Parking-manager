@@ -1,4 +1,4 @@
-import { eventService } from "../services/eventService.js";
+import eventService from "../services/eventService.js";
 import { StatusCodes } from "http-status-codes";
 
 const getEvent = async (req, res, next) => {
@@ -20,7 +20,9 @@ const createEvent = async (req, res, next) => {
     }
     }
 
-export const eventController = {
+const eventController = {
     getEvent,
     createEvent
 };
+
+export default eventController;

@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { env } from "../config/enviroment.js";
-import { vehicleService } from "./vehicleService.js";
+import vehicleService from "./vehicleService.js";
 import Vehicle from "../models/vehicleModel.js";
 
 const generateAccessToken = (user) => {
@@ -354,22 +354,13 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
         email: 1,
         phone: 1,
         address: 1,
-        driver: 1,
+        driver: 1, // Chọn trường driver
         createdAt: 1,
       }
     )
       .limit(pageSize)
       .skip(skip)
-      .populate('driver.vehicleIds')
       .sort({ createdAt: -1 }); // Sắp xếp theo createdAt giảm dần
-
-      for (let driver of drivers) {
-        if (driver.driver && driver.driver.vehicleIds) {
-          const vehicleIds = driver.driver.vehicleIds;
-          const vehicle = await vehicleService.getListVehicleByVehicleIds(vehicleIds); // Hàm tìm thông tin vehicle theo ID
-          driver.driver.vehicle = vehicle; // Gán vehicles vào bên trong driver
-        }
-      }
 
     // Đếm tổng số tài liệu phù hợp với filter
     const totalCount = await Person.countDocuments({
@@ -539,7 +530,7 @@ const deleteDriver = async (driverId) => {
       // driver: { $exists: true },
     });
     if (driver) {
-      if (driver.driver.vehicleIds.length != 0) {
+      if (driver.driver.vehicleIds.length > 0) {
         await Vehicle.deleteMany({ driverId });
       }
     } else {
@@ -552,7 +543,7 @@ const deleteDriver = async (driverId) => {
   }
 };
 
-export const personService = {
+const personService = {
   createUser,
   createUserM,
   findById,
@@ -571,3 +562,5 @@ export const personService = {
   deleteDriver,
   findDriverByFilter,
 };
+
+export default personService;

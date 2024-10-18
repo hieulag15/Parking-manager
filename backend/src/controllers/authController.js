@@ -1,9 +1,9 @@
 import { StatusCodes } from "http-status-codes";
-import { personService } from "../services/personService.js";
+import authService from "../services/authService.js";
 
 const login = async (req, res) => {
     try {
-        const loginUser = await personService.login(req, res);
+        const loginUser = await authService.login(req, res);
         res.status(StatusCodes.OK).json(loginUser);
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error logging in: ${error.message}` });
@@ -13,7 +13,7 @@ const login = async (req, res) => {
 const refreshToken = async (req, res, next) => {
     try {
       // Dieu huong sang tang Service
-      const refreshToken = await personService.refreshToken(req, res)
+      const refreshToken = await authService.refreshToken(req, res)
   
       res.status(StatusCodes.OK).json(refreshToken)
     } catch (error) {
@@ -24,15 +24,17 @@ const refreshToken = async (req, res, next) => {
   const checkToken = async (req, res, next) => {
     try {
       // Điều hướng sang tầng Service
-      await personService.checkToken(req, res, next);
+      await authService.checkToken(req, res, next);
       res.status(StatusCodes.OK).json(req.user);
     } catch (error) {
       next(error);
     }
   };
 
-export const authController = {
+const authController = {
     login,
     refreshToken,
     checkToken
 };
+
+export default authController;

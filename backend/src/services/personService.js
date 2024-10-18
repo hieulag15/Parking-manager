@@ -360,6 +360,7 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
     )
       .limit(pageSize)
       .skip(skip)
+      .populate('driver.vehicleIds')
       .sort({ createdAt: -1 }); // Sắp xếp theo createdAt giảm dần
 
     // Đếm tổng số tài liệu phù hợp với filter

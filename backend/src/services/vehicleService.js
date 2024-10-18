@@ -125,7 +125,7 @@ const getListVehicleByVehicleIds = async (ids) => {
 }
 
 const vehicleService = {
-  createNew,
+  create,
   findByLicensePlate,
   updateDriverId,
   getVehicles,

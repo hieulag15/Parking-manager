@@ -1,35 +1,16 @@
 import { StatusCodes } from "http-status-codes";
-import { vehicleService } from "../services/vehicleService.js"; // Adjust the import based on your project structure
+import vehicleService from "../services/vehicleService.js";
 
-export const createVehicle = async (req, res) => {
+const getVehicle = async (req, res) => {
   try {
-    const newVehicle = await vehicleService.createNew(req.body);
-    res.status(StatusCodes.CREATED).json(newVehicle);
+    const vehicle = await vehicleService.getVehicle(req.params._id);
+    res.status(StatusCodes.OK).json(vehicle);
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error creating vehicle: ${error.message}` });
-  }
-};
-
-export const updateVehicle = async (req, res) => {
-  try {
-    const updatedData = req.body;
-    const result = await vehicleService.updateVehicle(req.query._id, updatedData);
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error updating vehicle: ${error.message}` });
-  }
-};
-
-export const deleteVehicle = async (req, res) => {
-  try {
-    const result = await vehicleService.deleteVehicle(req.query._id);
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error deleting vehicle: ${error.message}` });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error getting vehicle: ${error.message}` });
   }
 }
 
-export const getVehicles = async (req, res) => {
+const getVehicles = async (req, res) => {
   try {
     const status = req.query.status;
     const vehicles = await vehicleService.getVehicles(status);
@@ -39,9 +20,40 @@ export const getVehicles = async (req, res) => {
   }
 }
 
-export const vehicleController = {
+const createVehicle = async (req, res) => {
+  try {
+    const newVehicle = await vehicleService.create(req.body);
+    res.status(StatusCodes.CREATED).json(newVehicle);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error creating vehicle: ${error.message}` });
+  }
+};
+
+const updateVehicle = async (req, res) => {
+  try {
+    const updatedData = req.body;
+    const result = await vehicleService.updateVehicle(req.query._id, updatedData);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error updating vehicle: ${error.message}` });
+  }
+};
+
+const deleteVehicle = async (req, res) => {
+  try {
+    const result = await vehicleService.deleteVehicle(req.query._id);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error deleting vehicle: ${error.message}` });
+  }
+}
+
+const vehicleController = {
+  getVehicle,
+  getVehicles,
   createVehicle,
   updateVehicle,
-  deleteVehicle,
-  getVehicles
+  deleteVehicle
 }
+
+export default vehicleController;

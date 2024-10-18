@@ -5,7 +5,7 @@ import Person from '../models/personModel.js';
 import Parking from '../models/parkingModel.js';
 import { StatusCodes } from 'http-status-codes';
 
-export const createParking = async (parkingData) => {
+const create = async (parkingData) => {
     try {
       const parking = await Parking.create(parkingData);
       return parking;
@@ -14,7 +14,7 @@ export const createParking = async (parkingData) => {
     }
 };
 
-export const getParkingByZone = async (zone) => {
+const getParkingByZone = async (zone) => {
     try {
       const parking = await Parking.findOne({ zone }).populate({
         path: 'slots.parkingTurnId',
@@ -69,7 +69,7 @@ export const getParkingByZone = async (zone) => {
     }
 }
 
-export const updateSlot = async (parkingId, position, parkingTurnId = null) => {
+const updateSlot = async (parkingId, position, parkingTurnId = null) => {
     try {
         if (parkingTurnId) {
           const parking = await Parking.findOneAndUpdate(
@@ -116,7 +116,7 @@ export const updateSlot = async (parkingId, position, parkingTurnId = null) => {
     }
   }
 
-export const isSlotBlank = async (parkingId, position) => {
+const isSlotBlank = async (parkingId, position) => {
   try {
     const parking = await Parking.findOne(
       { _id: parkingId, 'slots.position': position },
@@ -132,3 +132,12 @@ export const isSlotBlank = async (parkingId, position) => {
     throw error
   }
 }
+
+const parkingService = {
+    create,
+    getParkingByZone,
+    updateSlot,
+    isSlotBlank,
+};
+
+export default parkingService;

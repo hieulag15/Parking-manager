@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { env } from "../config/enviroment.js";
-import { vehicleService } from "./vehicleService.js";
+import vehicleService from "./vehicleService.js";
 import Vehicle from "../models/vehicleModel.js";
 
 const generateAccessToken = (user) => {
@@ -543,7 +543,7 @@ const deleteDriver = async (driverId) => {
   }
 };
 
-export const personService = {
+const personService = {
   createUser,
   createUserM,
   findById,
@@ -562,3 +562,5 @@ export const personService = {
   deleteDriver,
   findDriverByFilter,
 };
+
+export default personService;

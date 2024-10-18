@@ -25,7 +25,7 @@ const updateDriverId = async (id, driverId) => {
   }
 }
 
-const createNew = async (data) => {
+const create = async (data) => {
   try {
     // Kiểm tra đã có thông tin xe này chưa
     const existingVehicle = await findByLicensePlate(data.licensePlate);
@@ -44,6 +44,14 @@ const createNew = async (data) => {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tạo thông tin xe mới không thành công', 'Not Created', 'BR_parking_3');
   }
 };
+
+const getVehicle = async (vehicleId) => {
+  try {
+    return await Vehicle.findById(vehicleId)
+  } catch (error) {
+    throw new Error(error.message)
+  }
+}
 
 const getVehicles = async (status) => {
   try {
@@ -108,9 +116,12 @@ const getVehiclesOutParking = async () => {
   }
 }
 
-export const vehicleService = {
-  createNew,
+const vehicleService = {
+  create,
   findByLicensePlate,
   updateDriverId,
+  getVehicle,
   getVehicles
 };
+
+export default vehicleService;

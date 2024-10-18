@@ -354,13 +354,22 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
         email: 1,
         phone: 1,
         address: 1,
-        driver: 1, // Chọn trường driver
+        driver: 1,
         createdAt: 1,
       }
     )
       .limit(pageSize)
       .skip(skip)
+      .populate('driver.vehicleIds')
       .sort({ createdAt: -1 }); // Sắp xếp theo createdAt giảm dần
+
+      for (let driver of drivers) {
+        if (driver.driver && driver.driver.vehicleIds) {
+          const vehicleIds = driver.driver.vehicleIds;
+          const vehicle = await vehicleService.getListVehicleByVehicleIds(vehicleIds); // Hàm tìm thông tin vehicle theo ID
+          driver.driver.vehicle = vehicle; // Gán vehicles vào bên trong driver
+        }
+      }
 
     // Đếm tổng số tài liệu phù hợp với filter
     const totalCount = await Person.countDocuments({
@@ -530,7 +539,7 @@ const deleteDriver = async (driverId) => {
       // driver: { $exists: true },
     });
     if (driver) {
-      if (driver.driver.vehicleIds.length > 0) {
+      if (driver.driver.vehicleIds.length != 0) {
         await Vehicle.deleteMany({ driverId });
       }
     } else {

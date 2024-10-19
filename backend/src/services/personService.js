@@ -198,17 +198,6 @@ const changePassword = async (req, res) => {
 
 const createUser = async (data) => {
   try {
-    const check = await Person.findOne({ account: data.account });
-    if (check) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        "Account already exists",
-        "Not found"
-      );
-    }
-
-    const hashed = await hashPassword(data.account.password);
-    data.account.password = hashed;
     const createUser = await Person.create(data);
     if (createUser.acknowledge == false) {
       throw new ApiError(
@@ -220,21 +209,21 @@ const createUser = async (data) => {
     }
 
     //update driver
-    if (data.driver && Array.isArray(data.driver.vehicles)) {
-      for (const vehicleData of data.driver.vehicles) {
-        const vehicle = await vehicleService.findByLicensePlate(
-          vehicleData.licensePlate
-        );
+    if (data.driver && Array.isArray(data.driver.licensePlate)) {
+      for (const vehicleData of data.driver.licensePlate) {
+        const vehicle = await vehicleService.findByLicensePlate(vehicleData);
         if (!vehicle) {
-          const newVehicle = await vehicleService.createNew({
+          const newVehicle = await vehicleService.create({
             driverId: createUser._id,
-            ...vehicleData,
+            licensePlate: vehicleData,
           });
           await addNewVehicle(createUser._id, newVehicle._id);
         } else {
           await addNewVehicle(createUser._id, vehicle._id);
         }
       }
+    } else {
+      console.log("not array");
     }
     return createUser;
   } catch (error) {
@@ -327,16 +316,21 @@ const findById = async (_id) => {
 const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
   // Khởi tạo đối tượng filter
   let filter = {};
-
   for (let [key, value] of Object.entries(params)) {
-    if (key === "name") {
+    if (key === "licensePlate") {
+      filter["driver.vehicleIds.licensePlate"] = {
+        $regex: new RegExp(value, "i"),
+      };
+    } else if (key === "name") {
       // Tìm kiếm không phân biệt chữ hoa chữ thường cho 'name'
-      filter[key] = new RegExp(`${value}`, "i"); // Đã sửa: thêm dấu `` để bao quanh ${value}
+      filter[key] = new RegExp(`${value}`, "i");
     } else {
       // Tìm kiếm không phân biệt chữ hoa chữ thường cho các trường khác
-      filter[key] = new RegExp(`^${value}`, "i"); // Đã sửa: thêm dấu `` để bao quanh ${value}
+      filter[key] = new RegExp(`^${value}`, "i");
     }
   }
+
+  console.log(filter);
 
   try {
     // Cài đặt phân trang và sắp xếp mặc định
@@ -360,7 +354,7 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
     )
       .limit(pageSize)
       .skip(skip)
-      .populate('driver.vehicleIds')
+      .populate("driver.vehicleIds")
       .sort({ createdAt: -1 }); // Sắp xếp theo createdAt giảm dần
 
     // Đếm tổng số tài liệu phù hợp với filter

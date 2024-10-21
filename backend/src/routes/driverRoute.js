@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post("/", personController.createNew);
 router.get("/filter", personController.findDriverByFilter);
-router.delete("/", personController.deleteDriver)
+router.delete("/", personController.deleteDriver);
+router.put("/", personController.updateDriver);
 
 export const driverRoute = router;

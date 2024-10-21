@@ -70,6 +70,20 @@ const updateAvatar = async (req, res) => {
   }
 }
 
+const updateDriver = async (req, res) => {
+  try {
+    const { data, licensePlate, job, deparment} = req.body;
+    const id = req.query._id;
+    console.log('truoc khi truyen: ' + id);
+    const result = await personService.updateDriver(id, data, licensePlate, job, deparment);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res
+     .status(StatusCodes.INTERNAL_SERVER_ERROR)
+     .json({ message: `Error updating driver: ${error.message}` });
+  }
+}
+
 const deleteUser = async (req, res) => {
   try {
     const result = await personService.deleteUser(req.query._id, "user");
@@ -141,6 +155,7 @@ const personController = {
   createManager,
   findById,
   updateUser,
+  updateDriver,
   deleteUser,
   deleteManager,
   deleteStaff,

@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post("/", personController.createNew);
 
-router.put("/", personController.updateUser);
+// router.put("/", personController.updateUser);
 router.delete("/", personController.deleteUser);
 
 // router.get("/driver/filter", personController.findDriverByFilter);

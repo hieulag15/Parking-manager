@@ -442,6 +442,65 @@ const updateAvatar = async (_id, image) => {
   }
 };
 
+const updateDriver = async (_id, data, licensePlate, job, deparment) => {
+  console.log('sau khi truyen: ' + _id);
+  const driver = await Person.findOne({ _id: _id });
+  if (!driver) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "Driver not found",
+      "Not found",
+      "BR_person_1"
+    );
+  }
+  let vehicleId = driver.vehicleIds[0].vehicleId;
+  const vehicle = await Vehicle.findOne({ licensePlate: licensePlate });
+
+  if (!vehicle) {
+    const newVehicle = await Vehicle.create({
+      licensePlate: licensePlate,
+      driverId: driver._id,
+    });
+    vehicleId = newVehicle.insertedId;
+    await addNewVehicle(driver._id, vehicleId);
+  } else if (!vehicle.driverId) {
+    await addNewVehicle(driver._id, vehicle._id);
+    vehicleId = vehicle._id;
+  } else if (!vehicle.driverId.equals(driver._id)) {
+    throw new ApiError(
+      StatusCodes.CONFLICT,
+      "Vehicle already assigned to another driver",
+      "Conflict",
+      "BR_vehicle_1"
+    );
+  } else {
+    vehicleId = vehicle._id.toString();
+  }
+
+  data = {
+    ...data,
+    driver: { job: job, deparment: deparment },
+  };
+
+  try {
+    const updateOperation = {
+      $set: {
+        ...data,
+      },
+    };
+    const result = await Person.findOneAndUpdate(
+      { _id: _id },
+      updateOperation,
+      { returnDocuments: true }
+    );
+    return result;
+  } catch (err) {
+    if (err.type && err.code)
+      throw new ApiError(err.statusCode, err.message, err.type, err.code);
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, err.message);
+  }
+};
+
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(password, salt);
@@ -544,6 +603,7 @@ const personService = {
   findById,
   updateUser,
   updateAvatar,
+  updateDriver,
   deleteUser,
   deleteAll,
   login,

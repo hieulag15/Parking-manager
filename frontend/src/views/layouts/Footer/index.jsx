@@ -5,7 +5,7 @@ function Footer() {
   return (
     <Layout.Footer className="text-center py-1">
       <Typography.Title type="secondary" level={5}>
-        Website được phát triển bởi Nhóm 3
+        Hệ thống giữ xe thông minh
       </Typography.Title>
     </Layout.Footer>
   );

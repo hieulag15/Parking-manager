@@ -1,4 +1,3 @@
-/* eslint-disable no-async-promise-executor */
 import axiosClient from './axiosClient';
 
 export const GET = ({ url, headers, payload, responseType = 'json' }) => new Promise(async (resolve, reject) => {

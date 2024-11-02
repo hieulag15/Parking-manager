@@ -8,10 +8,10 @@ import { ErrorService } from '~/services';
 import AppContext from '~/context';
 import { useContext } from 'react';
 import { FileExcelOutlined } from '@ant-design/icons';
+import { useEvents } from '~/hook/hookMonitor';
 
 function EventBlock({}) {
   const { state, actions } = useContext(AppContext);
-  const [data, setData] = useState([]);
   const { token } = theme.useToken();
   const [pageSize, setPageSize] = useState(50);
   const [pageIndex, setPageIndex] = useState(1);
@@ -31,18 +31,13 @@ function EventBlock({}) {
     }
   };
 
-  const callApi = async () => {
-    try {
-      const api = await MonitorApi.getEvents({ pageSize, pageIndex });
-      setData(api.data);
-    } catch (error) {
-      // ErrorService.hanldeError(error, actions.onNoti);
-    } finally {
-    }
-  };
+  const params = { pageSize, pageIndex };
+  const { data: eventsData, refetch, isFetching: loading } = useEvents(params);
+
+  const data = eventsData?.data || [];
 
   useEffect(() => {
-    callApi();
+    refetch();
   }, [state.parkingEvent]);
 
   const onExport = async () => {

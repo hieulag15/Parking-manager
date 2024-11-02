@@ -5,15 +5,19 @@ import { MonitorApi } from '~/api';
 import CardBlock from '~/components/CardBlock';
 import CustomedTag from '~/components/CustomedTag';
 import AppContext from '~/context';
+import { useStatusByZone } from '~/hook/hookMonitor';
 
 function GeneralCard({ zone = 'A' }) {
   const { token } = theme.useToken();
   const { state, actions } = useContext(AppContext);
-  const [data, setData] = useState({
+
+  const { data: statusData, refetch } = useStatusByZone(zone);
+
+  const data = statusData || {
     total: 1,
     occupied: 0,
     unoccupied: 0
-  });
+  };
 
   const config = {
     height: 170,
@@ -94,17 +98,8 @@ function GeneralCard({ zone = 'A' }) {
     }
   };
 
-  const callApi = async () => {
-    try {
-      const api = await MonitorApi.getStatusByZone(zone);
-      if (api) {
-        setData({ ...api });
-      }
-    } catch {}
-  };
-
   useEffect(() => {
-    callApi();
+    refetch();
   }, [state.parkingEvent]);
 
   return (

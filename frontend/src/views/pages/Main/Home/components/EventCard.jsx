@@ -28,19 +28,19 @@ function EventCard({ item }) {
     secondary: gold2
   };
 
-  let { name, parkingTurn, vehicle, person = {} } = item;
+  let { name, position, licensePlate, driverName, driverId = {} } = item;
   const color = name === 'in' ? inColor : outColor;
   let rs = [];
   let i = 0;
 
   //get Driver info: Department and job
-  if (person && person.driver) {
-    const { driver } = person;
-    person = {
-      ...person,
+  if (driverId && driverId.driver) {
+    const { driver } = driverId;
+    driverId = {
+      ...driverId,
       ...driver
     };
-    delete person.driver;
+    delete driverId.driver;
   }
 
   for (const [key, value] of Object.entries(personInfo)) {
@@ -48,7 +48,7 @@ function EventCard({ item }) {
       <Typography.Text key={'info' + i}>
         <span className="label">{value}</span>
         <span className="value">
-          {': '} {(person && person[key]) || 'Không xác định'}
+          {': '} {(driverId && driverId[key]) || 'Không xác định'}
         </span>
       </Typography.Text>
     );
@@ -57,7 +57,7 @@ function EventCard({ item }) {
 
   return (
     <Card
-      title={dayjs(item.createdAt, 'x').format('L LTS')}
+      title={dayjs(item.createdAt).format('L LTS')}
       className="event-card"
       style={{
         width: '99%',
@@ -79,7 +79,7 @@ function EventCard({ item }) {
               preview={false}
               style={{ background: '#FFF', width: 120, height: 120 }}
             />
-            <Typography.Text id="eventLisencePlate" strong>{vehicle.licenePlate}</Typography.Text>
+            <Typography.Text id="eventLisencePlate" strong>{licensePlate}</Typography.Text>
           </Flex>
         </Col>
         <Col span={16}>

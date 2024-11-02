@@ -46,7 +46,7 @@ function Driver({}) {
   const name = searchParams.get('name');
   const phone = searchParams.get('phone');
   const email = searchParams.get('email');
-  const licenePlate = searchParams.get('licenePlate');
+  const licensePlate = searchParams.get('licensePlate');
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSeletedRows] = useState([]);
   const isMounted = useRef(false);
@@ -82,8 +82,8 @@ function Driver({}) {
     const columns = [
       {
         title: 'Biển số xe',
-        dataIndex: 'licenePlate',
-        key: 'licenePlate'
+        dataIndex: 'licensePlate',
+        key: 'licensePlate'
       },
       {
         title: 'Loại xe',
@@ -106,7 +106,7 @@ function Driver({}) {
           }
           return <Badge {...config} />;
         }
-      },
+},
       {
         title: 'Ngày đăng ký',
         dataIndex: 'createdAt',
@@ -114,7 +114,7 @@ function Driver({}) {
         render: (_, record, index) => dayjs(record.createdAt).format('L')
       }
     ];
-    const newData = subData?.driver?.vehicle || [];
+    const newData = subData?.driver?.vehicleIds || [];
 
     return (
       <div className="container-fluid">
@@ -137,7 +137,7 @@ function Driver({}) {
   };
 
   const onEdit = (values) => {
-    values.licenePlate = values.driver?.vehicle[0]?.licenePlate || null;
+    values.licensePlate = values.driver?.vehicleIds[0]?.licensePlate || null;
     values = {
       ...values,
       ...values?.driver
@@ -158,6 +158,7 @@ function Driver({}) {
         type: 'loading',
         duration: 1
       });
+      console.log("id: " + values._id);
       const api = await UserApi.deleteDriver(values._id);
       setData(api);
       actions.onMess({
@@ -229,12 +230,12 @@ function Driver({}) {
       title: 'Nghề nghiệp',
       dataIndex: ['driver', 'job'],
       key: 'job',
-      render: (text, record, index) => JobServices.getTextByValue(text)
+      render: (text, record, index) => text //JobServices.getTextByValue(text)// 
     },
     {
       title: 'Đơn vị (Khoa)',
       dataIndex: ['driver', 'department'],
-      key: 'department',
+key: 'department',
       render: (text, record, index) => text
     },
     {
@@ -347,7 +348,7 @@ function Driver({}) {
                   }}
                   placeholder="Tên"
                   name="name"
-                  defaultValue={name}
+defaultValue={name}
                   onPressEnter={onEnterFilter}
                   onChange={onChangeFilter}
                   allowClear={true}
@@ -378,9 +379,9 @@ function Driver({}) {
                   style={{
                     width: 200
                   }}
-                  name="licenePlate"
+                  name="licensePlate"
                   placeholder="Biển số xe"
-                  defaultValue={licenePlate}
+                  defaultValue={licensePlate}
                   onPressEnter={onEnterFilter}
                   onChange={onChangeFilter}
                   allowClear={true}

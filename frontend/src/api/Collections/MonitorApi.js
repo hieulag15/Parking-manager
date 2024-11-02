@@ -36,13 +36,14 @@ export default {
   //   });
   // },
 
-  // getEvents: (payload) => {
-  //   const url = `${DOMAIN}/parkingTurn/event`;
-  //   return GET({
-  //     url,
-  //     payload
-  //   });
-  // },
+  getEvents: (payload) => {
+    console.log('payload', payload);
+    const url = `${DOMAIN}/event`;
+    return GET({
+      url,
+      payload
+    });
+  },
 
   // export: () => {
   //   const url = `${DOMAIN}/parkingTurn/event/export`;

@@ -12,7 +12,7 @@ export default {
   // },
 
   getStatus: (payload) => {
-    const url = `${DOMAIN}/parking`;
+    const url = `${DOMAIN}/parking?zone=${payload.zone}`;
     return GET({
       url,
       payload
@@ -20,28 +20,22 @@ export default {
   },
 
   importVehicle: (payload) => {
-    const { licenePlate, position, zone } = payload;
-    let path = '/createPakingTurn';
-    if (!position) {
-      path = '/createPakingTurnWithoutPosition';
-      if (!zone) {
-        path = '/createPakingTurnWithoutZoneAndPosition';
+    const url = `${DOMAIN}/parking-turn?action=in`;
+    return POST({
+      url,
+      payload: {
+        ...payload,
+        fee: 5000
       }
-    }
-    const url = `${DOMAIN}/parkingTurn${path}`;
+    });
+  },
 
+  exportVehicle: (payload) => {
+    const url = `${DOMAIN}/parking-turn?action=out`;
+    console.log(payload);
     return POST({
       url,
       payload
     });
-  },
-
-  // exportVehicle: (payload) => {
-  //   const url = `${DOMAIN}/parkingTurn/outPaking`;
-
-  //   return POST({
-  //     url,
-  //     payload
-  //   });
-  // }
+  }
 };

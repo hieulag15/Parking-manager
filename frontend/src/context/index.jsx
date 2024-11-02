@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+// eslint-disable-next-line no-unused-vars
 import React, { useReducer, createContext } from 'react';
 import {
   logout,
@@ -8,7 +10,8 @@ import {
   onSetChangePassword,
   onEventParking,
   onAuthorize,
-  editProfile
+  editProfile,
+  changeState
 } from './actions';
 import initState from './initState';
 import reducer from './reducer';
@@ -19,6 +22,9 @@ export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initState);
 
   const actions = {
+    changeState: async (params) => dispatch(await changeState(params)),
+    changeTheme: async (params) => dispatch(await changeTheme(params)),
+    changeLanguage: async (params) => dispatch(await changeLanguage(params)),
     logout: async (params) => dispatch(await logout(params)),
     onLogin: async (params) => dispatch(await onLogin(params)),
     checkAuthenSevice: async (params) => dispatch(await checkAuthenSevice(params)),

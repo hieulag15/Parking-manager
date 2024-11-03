@@ -16,7 +16,6 @@ import DEFAULT_AVATAR from '~/assets/images/avatar.png';
 import { DownOutlined, SettingTwoTone } from '@ant-design/icons';
 import AppContext from '~/context';
 import { useNavigate } from 'react-router-dom';
-import EmployeeForm from '~/views/pages/Main/Employee/EmployeeForm';
 
 const items = [
   {
@@ -138,12 +137,6 @@ function Header({ title }) {
         }}
         destroyOnClose={true}
         classNames={{ footer: 'd-none' }}>
-        <EmployeeForm
-          formAction={formAction}
-          isOpen={openForm}
-          onClose={hanldeCloseForm}
-          noChangeAccount
-        />
       </Modal>
     </Layout.Header>
   );

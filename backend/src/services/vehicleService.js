@@ -3,7 +3,7 @@ import Vehicle from "../models/vehicleModel.js"; // Adjust the import based on y
 import ApiError from "../utils/ApiError.js";
 import Parking from "../models/parkingModel.js";
 import ParkingTurn from "../models/parkingTurnModel.js";
-
+import mongoose from 'mongoose';
 
 const findByLicensePlate = async (licensePlate) => {
   try {
@@ -16,8 +16,8 @@ const findByLicensePlate = async (licensePlate) => {
 const updateDriverId = async (id, driverId) => {
   try {
     const updateVehicle = await Vehicle.updateOne(
-      { _id: new ObjectId(id)},
-      { $set: { driverId: new ObjectId(driverId) }}
+      { _id: id},
+      { $set: { driverId }}
     )
     return updateVehicle;
   } catch (error) {
@@ -35,7 +35,6 @@ const create = async (data) => {
 
     // Tạo thông tin xe mới
     const newVehicle = await Vehicle.create(data);
-
 
     return newVehicle;
   } catch (error) {
@@ -123,6 +122,7 @@ const getListVehicleByVehicleIds = async (ids) => {
 }
 
 const vehicleService = {
+  getVehicle,
   create,
   findByLicensePlate,
   updateDriverId,

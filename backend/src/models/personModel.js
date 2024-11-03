@@ -38,6 +38,8 @@ const personSchema = new mongoose.Schema(
         minlength: 4,
         maxlength: 30,
         trim: true,
+        unique: true,
+        sparse: true
       },
       password: {
         type: String,
@@ -82,6 +84,6 @@ personSchema.plugin(mongoose_delete, {
   overrideMethods: "all",
 });
 
-const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema);
+const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema, PERSON_COLLECTION_NAME);
 
 export default Person;

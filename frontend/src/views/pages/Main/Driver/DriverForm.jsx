@@ -149,7 +149,7 @@ function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
         <Form.Item label="Đơn vị" name={['driver', 'department']} rules={[{ required: true }]}>
           <Input placeholder="Công nghệ thông tin" />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           label="Biển số xe"
           name={formAction === 'add' ? ['driver', 'licensePlate', 0] : ['licensePlate']}
           rules={[
@@ -164,82 +164,75 @@ function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
             })
           ]}>
           <Input placeholder="12A-2184" />
-        </Form.Item>
-        {/* <Form.Item name="vehicle" className="w-100" wrapperCol={{ span: 24 }}>
-        <div
-          style={{
-            display: 'flex',
-            rowGap: 16,
-            flexDirection: 'column'
-          }}>
-          <Card size="small" title={`Nhập thông tin xe`}>
-            <Form.Item
-              label="Biển số xe"
-              name={['vehicle', 'licenePlate']}
-              rules={[{ required: true }]}
-              labelCol={{ span: 6 }}
-              wrapperCol={{ span: 18 }}>
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Loại xe"
-              name={'type'}
-              rules={[{ required: true }]}
-              labelCol={{ span: 6 }}
-              wrapperCol={{ span: 18 }}>
-              <Select>
-                <Select.Option></Select.Option>
-              </Select>
-            </Form.Item>
-          </Card>
-        </div>
-      </Form.Item> */}
+        </Form.Item> */}
+        <Form.List name="vehicles">
+          {(fields, { add, remove }) => (
+            <div
+              style={{
+                display: 'flex',
+                rowGap: 16,
+                flexDirection: 'column'
+              }}>
+              {fields.map((field) => (
+                <Card
+                  size="small"
+                  title={`Xe ${field.name + 1}`}
+                  key={field.key}
+                  extra={
+                    <CloseOutlined
+                      onClick={() => {
+                        remove(field.name);
+                      }}
+                    />
+                  }>
+                  <Form.Item
+                    label="Biển số xe"
+                    name={[field.name, 'licensePlate']}
+                    rules={[
+                      { required: true, message: false },
+                      ({}) => ({
+                        validator(_, value) {
+                          if (ValidateService.licensePlate(value)) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject({ message: 'Sai định dạng (VD: 12A-2184)' });
+                        }
+                      })
+                    ]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    label="Loại xe"
+                    name={[field.name, 'type']}
+                    rules={[{ required: true }]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Select>
+                      <Select.Option value="Car">Ô tô</Select.Option>
+                      <Select.Option value="Motorbike">Xe máy</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Card>
+              ))}
 
-        {/* <Form.List name="vehicle">
-        {(fields, { add, remove }) => (
-          <div
-            style={{
-              display: 'flex',
-              rowGap: 16,
-              flexDirection: 'column'
-            }}>
-            {fields.map((field) => (
-              <Card
-                size="small"
-                title={`Xe ${field.name + 1}`}
-                key={field.key}
-                extra={
-                  <CloseOutlined
-                    onClick={() => {
-                      remove(field.name);
-                    }}
-                  />
-                }>
-                <Form.Item label="Biển số xe" name={[field.name, 'licenePlate']}>
-                  <Input />
-</Form.Item>
-                <Form.Item label="Loại xe" name={[field.name, 'type']}>
-                  <Input />
-                </Form.Item>
-              </Card>
-            ))}
-
-            <Form.Item
-              shouldUpdate={(pre, curr) => pre.vehicle !== curr.vehicle}
-              wrapperCol={{ span: 24 }}>
-              {({ getFieldValue }) => {
-                const currVeh = getFieldValue('vehicle');
-                const disabled = (currVeh?.length || 0) >= 2;
-                return (
-                  <Button disabled={disabled} type="dashed" onClick={() => add()} block>
-                    + Thêm một xe
-                  </Button>
-                );
-              }}
-            </Form.Item>
-          </div>
-        )}
-      </Form.List> */}
+              <Form.Item
+                shouldUpdate={(pre, curr) => pre.vehicle !== curr.vehicle}
+                wrapperCol={{ span: 24 }}>
+                {({ getFieldValue }) => {
+                  const currVeh = getFieldValue('vehicle');
+                  const disabled = (currVeh?.length || 0) >= 2;
+                  return (
+                    <Button disabled={disabled} type="dashed" onClick={() => add()} block>
+                      + Thêm một xe
+                    </Button>
+                  );
+                }}
+              </Form.Item>
+            </div>
+          )}
+        </Form.List>
 
         <Form.Item
           wrapperCol={{

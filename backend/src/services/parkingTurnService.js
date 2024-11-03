@@ -4,18 +4,20 @@ import Vehicle from '../models/vehicleModel.js';
 import Parking from '../models/parkingModel.js';
 import ApiError from '../utils/ApiError.js';
 import eventService from './eventService.js';
+import vehicleService from './vehicleService.js';
 import { StatusCodes } from 'http-status-codes';
 
 const create = async (data) => {
     try {
-        const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
+        let vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
         const parking = await Parking.findOne({ zone: data.zone });
 
         if (!vehicle) {
-            throw new  ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không có thông tin về xe này', 'Not Created', 'BR_parking_3');
+            // Tạo thông tin xe mới
+            vehicle = await vehicleService.create(data);    
         }
 
-        // // Kiểm tra xe có trong bãi chưa
+        // Kiểm tra xe có trong bãi chưa
         const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
 
         if (vehicleInParking) {
@@ -50,8 +52,6 @@ const create = async (data) => {
                 console.error('Error updating parking slot:', error);
                 throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Bãi cập nhật không thành công', 'Not Updated', 'BR_parking_3');
             });
-
-        
 
         // // Tạo sự kiện vào bãi
         await eventService.create({

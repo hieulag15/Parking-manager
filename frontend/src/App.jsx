@@ -11,6 +11,7 @@ import { dayjsSetup } from './config';
 import dayjs from 'dayjs';
 import PageError from './views/pages/PageError';
 import { ThemeProvider } from 'styled-components';
+import Register from './views/pages/Authen/Register';
 // import socket from './socket';
 
 function Authencation({ children }) {
@@ -79,6 +80,7 @@ function App() {
       <ThemeProvider theme={{ ...token }}>
         <Routes>
           <Route path="/auth/login" element={<Authen />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/*"
             element={

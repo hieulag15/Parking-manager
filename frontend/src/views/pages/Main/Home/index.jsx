@@ -71,19 +71,6 @@ function Home({}) {
           <Col className="gutter-row" span={8}>
             <EventBlock />
           </Col>
-          {/* <TileLayout
-              ref={tileLayoutRef}
-              columns={12}
-              rowHeight={4}
-              gap={{ rows: 16, columns: 16 }}
-              id={'dashboardLayout'}
-              positions={DefaultPosition}
-              items={layoutItems}
-              style={{
-                padding: 0,
-                width: '100%'
-              }}
-            /> */}
         </Row>
       </Content>
       <Footer />

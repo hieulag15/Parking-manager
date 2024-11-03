@@ -152,6 +152,19 @@ function Event({}) {
                     <Input placeholder="A1-013" />
                   )}
                 </Form.Item>
+                {!isSelect && 
+                    <Form.Item
+                      label="Loại xe"
+                      name="type"
+                      rules={[{ required: true }]}
+                      labelCol={{ span: 6 }}
+                      wrapperCol={{ span: 18 }}>
+                      <Select>
+                        <Select.Option value="Car">Ô tô</Select.Option>
+                        <Select.Option value="Motorbike">Xe máy</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  }
                 <Form.Item name="zone" label="Khu vực">
                   <Radio.Group>
                     {zones.map((el) => (

@@ -34,6 +34,10 @@ function Authen({}) {
     setLoading(false);
   };
 
+  const onRegister = () => {
+    navigate('/register');
+  };
+
   const onFinish = (values) => {
     const { username, password } = values;
     setLoading(true);
@@ -104,6 +108,11 @@ function Authen({}) {
               </Form.Item>
             </Form>
           </Row>
+          <Row>
+            <Button block size="large" onClick={onRegister}>
+              Đăng ký
+            </Button>
+        </Row>
         </Space>
       </Content>
       <Footer />

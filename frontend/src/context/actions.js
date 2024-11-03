@@ -1,7 +1,9 @@
 import Cookies from 'js-cookie';
-import { AccountApi } from '~/api';
+import { AccountApi } from '../api';
 import dayjs from 'dayjs';
 import { ErrorService } from '~/services';
+
+export const changeState = async (params = { type: null, payload }) => params;
 
 export const onLogin = async (params) => {
   let isLogin = false;
@@ -16,7 +18,7 @@ export const onLogin = async (params) => {
       info = rs?.person || {};
       type = 'success';
       content = 'Đăng nhập thành công';
-      Cookies.set('access_token', rs.accessToken, { expires: 7 });
+      localStorage.setItem('access_token', rs.accessToken);
 
       const expirationTime = dayjs().unix() + 5;
       localStorage.setItem(
@@ -106,8 +108,8 @@ export const onAuthorize = async ({ onError }) => {
 };
 
 export const logout = async () => {
-  localStorage.removeItem('isLogin');
-  Cookies.remove('access_token');
+  localStorage.removeItem('auth');
+  localStorage.removeItem('access_token');
 
   return {
     type: 'auth',

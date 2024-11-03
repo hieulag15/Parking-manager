@@ -35,21 +35,20 @@ const personSchema = new mongoose.Schema(
     account: {
       username: {
         type: String,
-        required: true,
         minlength: 4,
         maxlength: 30,
         trim: true,
+        unique: true,
+        sparse: true
       },
       password: {
         type: String,
-        required: true,
         minlength: 20,
         maxlength: 100,
         trim: true,
       },
       role: {
         type: String,
-        required: true,
         minlength: 3,
         maxlength: 20,
         trim: true,
@@ -65,14 +64,12 @@ const personSchema = new mongoose.Schema(
       ],
       job: {
         type: String,
-        required: true,
         minlength: 4,
         maxlength: 50,
         trim: true,
       },
       department: {
         type: String,
-        required: true,
         minlength: 1,
         maxlength: 50,
         trim: true,
@@ -87,6 +84,6 @@ personSchema.plugin(mongoose_delete, {
   overrideMethods: "all",
 });
 
-const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema);
+const Person = mongoose.model(PERSON_COLLECTION_NAME, personSchema, PERSON_COLLECTION_NAME);
 
 export default Person;

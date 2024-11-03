@@ -3,6 +3,7 @@ import { Form, Modal, Input, Select, Button, Space, Card } from 'antd';
 import { MinusCircleOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { ErrorService, ValidateService } from '~/services';
 import { UserApi } from '~/api';
+import { useAddDriver, useEditDriver } from '~/hook/hookUser';
 
 const formItemLayout = {
   labelCol: {
@@ -15,7 +16,10 @@ const formItemLayout = {
 
 function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+
+  const { mutate: addDriver, isLoading: isAddLoading } = useAddDriver();
+  const { mutate: editDriver, isLoading: isEditLoading } = useEditDriver();
 
   const hanldeClose = () => {
     form.resetFields();
@@ -28,50 +32,79 @@ function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
     }
   }, [formAction]);
 
-  const hanldeEdit = async (values) => {
-    try {
-      setLoading(true);
-      const api = await UserApi.editDriver(formAction.payload._id, values);
-      if (api) {
-        onMess({ content: 'Chỉnh sửa chủ xe thành công', type: 'success' });
+  // const handleEdit = async (values) => {
+  //   try {
+  //     setLoading(true);
+  //     const api = await UserApi.editDriver(formAction.payload._id, values);
+  //     if (api) {
+  //       onMess({ content: 'Chỉnh sửa chủ xe thành công', type: 'success' });
+  //     }
+  //     onClose({ reload: true });
+  //   } catch (error) {
+  //     ErrorService.hanldeError(error, onNoti);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleEdit = (values) => {
+    editDriver(
+      { _id: formAction.payload._id, payload: values },
+      {
+        onSuccess: () => {
+          onMess({ content: 'Chỉnh sửa chủ xe thành công', type: 'success' });
+          onClose({ reload: true });
+        },
+        onError: (error) => {
+          ErrorService.hanldeError(error, onNoti);
+        }
       }
-      onClose({ reload: true });
-    } catch (error) {
-      ErrorService.hanldeError(error, onNoti);
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
-  const hanldeAdd = async (values) => {
-    try {
-      setLoading(true);
-      const api = await UserApi.addDriver(values);
-      if (api) {
+  // const handleAdd = async (values) => {
+  //   try {
+  //     setLoading(true);
+  //     const api = await UserApi.addDriver(values);
+  //     if (api) {
+  //       onMess({ content: 'Thêm chủ xe thành công', type: 'success' });
+  //     }
+  //     onClose({ reload: true });
+  //   } catch (error) {
+  //     ErrorService.hanldeError(error, onNoti);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleAdd = (values) => {
+    addDriver(values, {
+      onSuccess: () => {
         onMess({ content: 'Thêm chủ xe thành công', type: 'success' });
+        onClose({ reload: true });
+      },
+      onError: (error) => {
+        ErrorService.hanldeError(error, onNoti);
       }
-      onClose({ reload: true });
-    } catch (error) {
-      ErrorService.hanldeError(error, onNoti);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const onFinish = (values) => {
     if (formAction.action === 'add') {
-      hanldeAdd(values);
+      handleAdd(values);
     } else {
-      hanldeEdit(values);
+      handleEdit(values);
     }
   };
+
+  const isLoading = isAddLoading || isEditLoading;
 
   return (
     <div className="container-fluid pt-3">
       <Form
         form={form}
         onFinish={onFinish}
-        disabled={loading}
+        disabled={isLoading}
         {...formItemLayout}
         style={{ maxWidth: 4000 }}>
         <Form.Item name={'name'} label="Họ và tên" rules={[{ required: true }]}>
@@ -106,19 +139,19 @@ function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
         <Form.Item name={'address'} label="Địa chỉ" rules={[{ required: true, message: false }]}>
           <Input placeholder="Số 1 Võ Văn Ngân, Linh Chiểu" id="addressInput" />
         </Form.Item>
-        <Form.Item label="Nghề nghiệp" name={['job']} rules={[{ required: true }]}>
+        <Form.Item label="Nghề nghiệp" name={['driver', 'job']} rules={[{ required: true }]}>
           <Select>
             <Select.Option value="Teacher">Giảng viên</Select.Option>
             <Select.Option value="Student">Sinh viên</Select.Option>
             <Select.Option value="Employee">Nhân viên</Select.Option>
           </Select>
         </Form.Item>
-        <Form.Item label="Đơn vị" name={['department']} rules={[{ required: true }]}>
+        <Form.Item label="Đơn vị" name={['driver', 'department']} rules={[{ required: true }]}>
           <Input placeholder="Công nghệ thông tin" />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           label="Biển số xe"
-          name={['licenePlate']}
+          name={formAction === 'add' ? ['driver', 'licensePlate', 0] : ['licensePlate']}
           rules={[
             { required: true, message: false },
             ({}) => ({
@@ -131,82 +164,75 @@ function DriverForm({ isOpen, onClose, formAction, onNoti, onMess }) {
             })
           ]}>
           <Input placeholder="12A-2184" />
-        </Form.Item>
-        {/* <Form.Item name="vehicle" className="w-100" wrapperCol={{ span: 24 }}>
-        <div
-          style={{
-            display: 'flex',
-            rowGap: 16,
-            flexDirection: 'column'
-          }}>
-          <Card size="small" title={`Nhập thông tin xe`}>
-            <Form.Item
-              label="Biển số xe"
-              name={['vehicle', 'licenePlate']}
-              rules={[{ required: true }]}
-              labelCol={{ span: 6 }}
-              wrapperCol={{ span: 18 }}>
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Loại xe"
-              name={'type'}
-              rules={[{ required: true }]}
-              labelCol={{ span: 6 }}
-              wrapperCol={{ span: 18 }}>
-              <Select>
-                <Select.Option></Select.Option>
-              </Select>
-            </Form.Item>
-          </Card>
-        </div>
-      </Form.Item> */}
+        </Form.Item> */}
+        <Form.List name="vehicles">
+          {(fields, { add, remove }) => (
+            <div
+              style={{
+                display: 'flex',
+                rowGap: 16,
+                flexDirection: 'column'
+              }}>
+              {fields.map((field) => (
+                <Card
+                  size="small"
+                  title={`Xe ${field.name + 1}`}
+                  key={field.key}
+                  extra={
+                    <CloseOutlined
+                      onClick={() => {
+                        remove(field.name);
+                      }}
+                    />
+                  }>
+                  <Form.Item
+                    label="Biển số xe"
+                    name={[field.name, 'licensePlate']}
+                    rules={[
+                      { required: true, message: false },
+                      ({}) => ({
+                        validator(_, value) {
+                          if (ValidateService.licensePlate(value)) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject({ message: 'Sai định dạng (VD: 12A-2184)' });
+                        }
+                      })
+                    ]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    label="Loại xe"
+                    name={[field.name, 'type']}
+                    rules={[{ required: true }]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Select>
+                      <Select.Option value="Car">Ô tô</Select.Option>
+                      <Select.Option value="Motorbike">Xe máy</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Card>
+              ))}
 
-        {/* <Form.List name="vehicle">
-        {(fields, { add, remove }) => (
-          <div
-            style={{
-              display: 'flex',
-              rowGap: 16,
-              flexDirection: 'column'
-            }}>
-            {fields.map((field) => (
-              <Card
-                size="small"
-                title={`Xe ${field.name + 1}`}
-                key={field.key}
-                extra={
-                  <CloseOutlined
-                    onClick={() => {
-                      remove(field.name);
-                    }}
-                  />
-                }>
-                <Form.Item label="Biển số xe" name={[field.name, 'licenePlate']}>
-                  <Input />
-                </Form.Item>
-                <Form.Item label="Loại xe" name={[field.name, 'type']}>
-                  <Input />
-                </Form.Item>
-              </Card>
-            ))}
-
-            <Form.Item
-              shouldUpdate={(pre, curr) => pre.vehicle !== curr.vehicle}
-              wrapperCol={{ span: 24 }}>
-              {({ getFieldValue }) => {
-                const currVeh = getFieldValue('vehicle');
-                const disabled = (currVeh?.length || 0) >= 2;
-                return (
-                  <Button disabled={disabled} type="dashed" onClick={() => add()} block>
-                    + Thêm một xe
-                  </Button>
-                );
-              }}
-            </Form.Item>
-          </div>
-        )}
-      </Form.List> */}
+              <Form.Item
+                shouldUpdate={(pre, curr) => pre.vehicle !== curr.vehicle}
+                wrapperCol={{ span: 24 }}>
+                {({ getFieldValue }) => {
+                  const currVeh = getFieldValue('vehicle');
+                  const disabled = (currVeh?.length || 0) >= 2;
+                  return (
+                    <Button disabled={disabled} type="dashed" onClick={() => add()} block>
+                      + Thêm một xe
+                    </Button>
+                  );
+                }}
+              </Form.Item>
+            </div>
+          )}
+        </Form.List>
 
         <Form.Item
           wrapperCol={{

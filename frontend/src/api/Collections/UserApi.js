@@ -12,100 +12,108 @@ export default {
   },
 
   getDrivers: (payload) => {
-    const url = `${DOMAIN}/user/driver/filter`;
+    const url = `${DOMAIN}/driver/filter`;
     return GET({
       url,
       payload
     });
   },
 
-  // getEmployee: (payload) => {
-  //   const url = `${DOMAIN}/user/employee`;
-  //   return GET({
-  //     url,
-  //     payload
-  //   });
-  // },
+  getVehicles: (payload) => {
+    const url = `${DOMAIN}/vehicle`;
+    return GET({
+      url,
+      payload
+    });
+  },
 
-  // add: (payload) => {
-  //   const url = `${DOMAIN}/user`;
-  //   return POST({
-  //     url,
-  //     payload
-  //   });
-  // },
+  getEmployee: (payload) => {
+    const url = `${DOMAIN}/user/employee`;
+    return GET({
+      url,
+      payload
+    });
+  },
 
-  // addDriver: (payload) => {
-  //   const url = `${DOMAIN}/user/driver`;
-  //   return POST({
-  //     url,
-  //     payload
-  //   });
-  // },
+  add: (payload) => {
+    const url = `${DOMAIN}/drivers`;
+    return POST({
+      url,
+      payload
+    });
+  },
 
-  // addMany: (payload) => {
-  //   const url = `${DOMAIN}/user/addMany`;
-  //   return POST({
-  //     url,
-  //     payload
-  //   });
-  // },
+  addDriver: (payload) => {
+    const url = `${DOMAIN}/driver`;
+    return POST({
+      url,
+      payload
+    });
+  },
 
-  // edit: (_id, payload) => {
-  //   const url = `${DOMAIN}/user?_id=${_id}`;
-  //   return PUT({
-  //     url,
-  //     payload
-  //   });
-  // },
+  addMany: (payload) => {
+    const url = `${DOMAIN}/user/addMany`;
+    return POST({
+      url,
+      payload
+    });
+  },
 
-  // editDriver: (_id, payload) => {
-  //   const url = `${DOMAIN}/user/driver?_id=${_id}`;
-  //   return PUT({
-  //     url,
-  //     payload
-  //   });
-  // },
+  edit: (_id, payload) => {
+    const url = `${DOMAIN}/user?_id=${_id}`;
+    return PUT({
+      url,
+      payload
+    });
+  },
 
-  // delete: (_id) => {
-  //   const url = `${DOMAIN}/user?_id=${_id}`;
-  //   return DELETE({
-  //     url
-  //   });
-  // },
+  editDriver: (_id, payload) => {
+    const url = `${DOMAIN}/driver?_id=${_id}`;
+    return PUT({
+      url,
+      payload
+    });
+  },
 
-  // deleteMany: (ids) => {
-  //   const url = `${DOMAIN}/user/deleteMany`;
-  //   return POST({
-  //     url,
-  //     payload: {
-  //       ids
-  //     }
-  //   });
-  // },
+  delete: (_id) => {
+    const url = `${DOMAIN}/user?_id=${_id}`;
+    return DELETE({
+      url
+    });
+  },
 
-  // deleteDriver: (_id) => {
-  //   const url = `${DOMAIN}/user/driver?_id=${_id}`;
-  //   return DELETE({
-  //     url
-  //   });
-  // },
+  deleteMany: (ids) => {
+    const url = `${DOMAIN}/user/deleteMany`;
+    return POST({
+      url,
+      payload: {
+        ids
+      }
+    });
+  },
 
-  // deleteManyDriver: (ids) => {
-  //   const url = `${DOMAIN}/user/driver/deletes`;
-  //   return POST({
-  //     url,
-  //     payload: {
-  //       ids
-  //     }
-  //   });
-  // },
+  deleteDriver: (_id) => {
+    const url = `${DOMAIN}/driver?_id=${_id}`;
+    return DELETE({
+      url
+    });
+  },
 
-  // changePassword: (payload) => {
-  //   const url = `${DOMAIN}/user/changePassword`;
-  //   return POST({
-  //     url,
-  //     payload,
-  //   });
-  // }
+  deleteManyDriver: (ids) => {
+    const url = `${DOMAIN}/user/driver/deletes`;
+    return POST({
+      url,
+      payload: {
+        ids
+      }
+    });
+  },
+
+  changePassword: (payload) => {
+    const url = `${DOMAIN}/user/changePassword`;
+    return POST({
+      url,
+      payload,
+    });
+  }
 };

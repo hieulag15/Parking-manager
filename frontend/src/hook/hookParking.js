@@ -16,6 +16,7 @@ export const useImportVehicle = () => {
     mutationFn: (payload) => ParkingApi.importVehicle(payload),
     onSuccess: () => {
       queryClient.invalidateQueries(['status']);
+      // socket.emit('parkingUpdated')
     },
   });
 };
@@ -27,6 +28,7 @@ export const useExportVehicle = () => {
     mutationFn: (payload) => ParkingApi.exportVehicle(payload),
     onSuccess: () => {
       queryClient.invalidateQueries(['status']);
+      // socket.emit('parkingUpdated')
     },
   });
 };

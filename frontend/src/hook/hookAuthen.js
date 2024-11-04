@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from 'react-query';
-import { AccountApi } from '~/api';
+import { AuthApi } from '~/api';
 import Cookies from 'js-cookie';
 import dayjs from 'dayjs';
 import ErrorService from '~/services/ErrorService';
@@ -12,7 +12,7 @@ export const useLogin = ({ onNoti, onComplete }) => {
 
   return useMutation(
     async ({ username, password, role }) => {
-      const rs = await AccountApi.login({ username, password, role, onNoti });
+      const rs = await AuthApi.authentication({ username, password, role, onNoti });
       return rs;
     },
     {
@@ -62,7 +62,7 @@ export const useCheckAuthen = (onError, onFinish) => {
     return useQuery(
       'auth',
       async () => {
-        const result = await AccountApi.checkToken();
+        const result = await AuthApi.reAuthentication();
         return result;
       },
       {

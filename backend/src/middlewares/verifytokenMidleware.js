@@ -27,12 +27,17 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const verifyTokenAndAdminManager = (req, res, next) => {
+const verifyTokenAndAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.role == 'Admin' || req.user.role == 'Manager') {
+    if (req.user.role == 'Admin' ) {
       next();
     } else {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, {message: 'Bạn không được phép thực hiện hành động này'}, {type: 'auth'}, {code: 'BR_auth' });
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        'Bạn không được phép thực hiện hành động này',
+        'auth',
+        'BR_auth',
+      );
     }
   });
 };
@@ -40,5 +45,5 @@ const verifyTokenAndAdminManager = (req, res, next) => {
 export const verifyTokenMidleware = {
   createToken,
   verifyToken,
-  verifyTokenAndAdminManager,
+  verifyTokenAndAdmin,
 };

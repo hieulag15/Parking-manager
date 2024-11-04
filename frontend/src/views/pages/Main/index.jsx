@@ -10,15 +10,10 @@ import AppContext from '~/context';
 import { PasswordForm } from '~/views/components/Form';
 import socket from '~/socket';
 import { useEffect } from 'react';
-import Cookies from 'js-cookie';
-import { addManyDriver } from './data';
-import { AccountApi } from '~/api';
 
 function Main({}) {
   const { token } = theme.useToken();
   const { state, actions } = useContext(AppContext);
-  const { auth } = state;
-  const navigate = useNavigate();
 
   useEffect(() => {
     const hanldeNotiParking = (event) => {

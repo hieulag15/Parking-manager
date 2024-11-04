@@ -1,4 +1,5 @@
 import parkingTurnService from "../services/parkingTurnService.js";
+import { server } from "../server.js";
 
 const createParkingTurn = async (req, res) => {
   try {
@@ -7,11 +8,16 @@ const createParkingTurn = async (req, res) => {
     let parkingTurn;
 
     if (action === 'in') {
-      parkingTurn = await parkingTurnService.create(data);
+      if (!data.position) {
+        parkingTurn = await parkingTurnService.createWithoutPosition(data);
+      } else {
+        parkingTurn = await parkingTurnService.create(data);
+      }
     } 
     if (action === 'out') {
       parkingTurn = await parkingTurnService.outParking(data);
     }
+    server.io.emit('parkingUpdated');
     res.status(201).json(parkingTurn);
   } catch (error) {
     res.status(500).json({ message: `Error creating parking turn: ${error.message}` });

@@ -9,6 +9,7 @@ import AppContext from '~/context';
 import { useContext } from 'react';
 import { FileExcelOutlined } from '@ant-design/icons';
 import { useEvents } from '~/hook/hookMonitor';
+import socket from '~/socket';
 
 function EventBlock({}) {
   const { state, actions } = useContext(AppContext);
@@ -39,6 +40,27 @@ function EventBlock({}) {
   useEffect(() => {
     refetch();
   }, [state.parkingEvent]);
+
+  //socket
+  useEffect(() => {
+    const handleParkingUpdated = () => {
+      refetch();
+    };
+
+    // Config websocket
+    socket.on('connect', () => {
+      console.log('socket successful');
+    });
+
+    socket.on('parkingUpdated', handleParkingUpdated);
+
+    return () => {
+      socket.off('connect', () => {
+        console.log('socket close');
+      });
+      socket.off('parkingUpdated', handleParkingUpdated);
+    };
+  }, [refetch]);
 
   const onExport = async () => {
     try {

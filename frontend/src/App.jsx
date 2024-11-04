@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import PageError from './views/pages/PageError';
 import { ThemeProvider } from 'styled-components';
 import Register from './views/pages/Authen/Register';
-// import socket from './socket';
+import socket from './socket';
 
 function Authencation({ children }) {
   const { state } = useContext(AppContext);
@@ -22,7 +22,7 @@ function Authencation({ children }) {
     return children;
   }
 
-  return <Navigate to={'/auth/login'} />;
+  return <Navigate to={'/authentication'} />;
 }
 
 function Authorize({ children }) {
@@ -79,7 +79,7 @@ function App() {
       {notiContextHolder}
       <ThemeProvider theme={{ ...token }}>
         <Routes>
-          <Route path="/auth/login" element={<Authen />} />
+          <Route path="/authentication" element={<Authen />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/*"

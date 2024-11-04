@@ -11,7 +11,7 @@ const route = (app) => {
     app.use('/parking-turn', parkingTurnRoute);
     app.use('/person', personRoute);
     app.use('/vehicle', vehicleRoute);
-    app.use('/auth', authRoute);
+    app.use('/', authRoute);
     app.use('/driver', driverRoute);
     app.use('/event', eventRoute)
 }

@@ -14,10 +14,6 @@ const roles = [
     value: 'Manager',
     label: 'Quản lý'
   }
-  // {
-  //   value: 'Employee',
-  //   label: 'Nhân viên'
-  // }
 ];
 
 function Authen({}) {

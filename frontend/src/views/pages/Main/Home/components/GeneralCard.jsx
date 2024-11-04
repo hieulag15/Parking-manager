@@ -6,6 +6,7 @@ import CardBlock from '~/components/CardBlock';
 import CustomedTag from '~/components/CustomedTag';
 import AppContext from '~/context';
 import { useStatusByZone } from '~/hook/hookMonitor';
+import socket from '~/socket';
 
 function GeneralCard({ zone = 'A' }) {
   const { token } = theme.useToken();
@@ -18,6 +19,27 @@ function GeneralCard({ zone = 'A' }) {
     occupied: 0,
     unoccupied: 0
   };
+
+    //socket
+    useEffect(() => {
+      const handleParkingUpdated = () => {
+        refetch();
+      };
+  
+      // Config websocket
+      socket.on('connect', () => {
+        console.log('socket successful');
+      });
+  
+      socket.on('parkingUpdated', handleParkingUpdated);
+  
+      return () => {
+        socket.off('connect', () => {
+          console.log('socket close');
+        });
+        socket.off('parkingUpdated', handleParkingUpdated);
+      };
+    }, [refetch]);
 
   const config = {
     height: 170,

@@ -152,6 +152,84 @@ const login = async (req, res) => {
   }
 };
 
+const authentication = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const user = await Person.findOne({ 'account.username': username });
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "User not found",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+    const isMatch = await bcrypt.compare(
+      password,
+      user.account.password
+    );
+    if (!isMatch) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Password mismatch",
+        "Invalid",
+        "BR_person_1"
+      );
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    return { person: user, accessToken };
+  } catch (error) {
+    res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+  }
+};
+
+const reAuthentication = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "Bạn chưa được xác thực",
+        "auth",
+        "BR_auth"
+      );
+    }
+
+    const accessToken = token.split(" ")[1];
+    const user = await new Promise((resolve, reject) => {
+      jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, decoded) => {
+        if (err) {
+          return reject(
+            new ApiError(
+              StatusCodes.UNAUTHORIZED,
+              "Token không hợp lệ",
+              "auth",
+              "BR_auth"
+            )
+          );
+        }
+        resolve(decoded);
+      });
+    });
+
+    req.user = {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      role: user.role,
+      iat: user.iat,
+      exp: user.exp,
+    };
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 const changePassword = async (req, res) => {
   try {
     const data = req.body;
@@ -206,6 +284,8 @@ const authService = {
   refreshToken,
   changePassword,
   checkToken,
+  authentication,
+  reAuthentication,
 };
 
 export default authService;

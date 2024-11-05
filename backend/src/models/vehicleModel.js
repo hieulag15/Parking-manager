@@ -27,7 +27,7 @@ export const vehicleSchema = new Schema({
   },
   isParked: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 }, { timestamps: true });
 

@@ -7,6 +7,7 @@ import CustomedTable from '~/views/components/Table';
 import Filter from '~/views/components/Filter';
 import { useTranslation } from 'react-i18next';
 import { useEvents } from '~/hook/hookMonitor';
+import socket from '~/socket';
 
 function History({}) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +26,27 @@ function History({}) {
   const totalPage = eventsData?.totalPage || 0;
 
   console.log('data', data);
+
+  //socket
+  useEffect(() => {
+    const handleParkingUpdated = () => {
+      refetch();
+    };
+
+    // Config websocket
+    socket.on('connect', () => {
+      console.log('socket successful');
+    });
+
+    socket.on('parkingUpdated', handleParkingUpdated);
+
+    return () => {
+      socket.off('connect', () => {
+        console.log('socket close');
+      });
+      socket.off('parkingUpdated', handleParkingUpdated);
+    };
+  }, [refetch]);
 
   useEffect(() => {
     refetch();

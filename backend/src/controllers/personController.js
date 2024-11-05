@@ -48,7 +48,6 @@ const findById = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const newUser = req.body;
-    delete newUser.account;
     const result = await personService.updateUser(req.query.id, newUser);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
@@ -72,10 +71,9 @@ const updateAvatar = async (req, res) => {
 
 const updateDriver = async (req, res) => {
   try {
-    const { data, licensePlate, job, deparment} = req.body;
+    const payload = req.body;
     const id = req.query._id;
-    console.log('truoc khi truyen: ' + id);
-    const result = await personService.updateDriver(id, data, licensePlate, job, deparment);
+    const result = await personService.updateDriver(id, payload);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res

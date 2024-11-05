@@ -7,7 +7,8 @@ import { ErrorService, ValidateService } from '~/services';
 import { SLOTS_A } from '../Map/parkingA';
 import { SLOTS_B } from '../Map/parkingB';
 import { SLOTS_C } from '../Map/parkingC';
-import { useImportVehicle, useExportVehicle } from '~/hook/hookParking';
+import { useImportVehicle, useExportVehicle, useGetStatus } from '~/hook/hookParking';
+import { useGetVehicles } from '~/hook/hookUser';
 
 const formItemLayout = {
   labelCol: {
@@ -36,28 +37,56 @@ function Event({}) {
     return [...(zoneA?.slots || []), ...(zoneB?.slots || []), ...(zoneC?.slots || [])];
   }, [parkings]);
 
-  const callApi = async () => {
-    try {
-      const api = await Promise.all([
-        UserApi.getVehicles({ status: 'out' }),
-        UserApi.getVehicles({ status: 'in' }),
-        ParkingApi.getStatus({ zone: 'A' }),
-        ParkingApi.getStatus({ zone: 'B' }),
-        ParkingApi.getStatus({ zone: 'C' })
-      ]);
+  // const callApi = async () => {
+  //   try {
+  //     const api = await Promise.all([
+  //       UserApi.getVehicles({ status: 'out' }),
+  //       UserApi.getVehicles({ status: 'in' }),
+  //       ParkingApi.getStatus({ zone: 'A' }),
+  //       ParkingApi.getStatus({ zone: 'B' }),
+  //       ParkingApi.getStatus({ zone: 'C' })
+  //     ]);
 
-      const [newVehiclesOutParking, newVehiclesInParking, parkingA, parkingB, parkingC] = api;
-      setVehiclesOutParking(newVehiclesOutParking);
-      setVehiclesInParking(newVehiclesInParking);
+  //     const [newVehiclesOutParking, newVehiclesInParking, parkingA, parkingB, parkingC] = api;
+  //     setVehiclesOutParking(newVehiclesOutParking);
+  //     setVehiclesInParking(newVehiclesInParking);
+  //     setParkings({
+  //       A: parkingA[0],
+  //       B: parkingB[0],
+  //       C: parkingC[0]
+  //     });
+  //   } catch (error) {
+  //     ErrorService.hanldeError(error, actions.onNoti);
+  //   }
+  // };
+
+  const { data: vehiclesOut } = useGetVehicles({ status: 'out' });
+  const { data: vehiclesIn } = useGetVehicles({ status: 'in' });
+  const { data: parkingA } = useGetStatus({ zone: 'A' });
+  const { data: parkingB } = useGetStatus({ zone: 'B' });
+  const { data: parkingC } = useGetStatus({ zone: 'C' });
+
+  useEffect(() => {
+    if (vehiclesOut) {
+      setVehiclesOutParking(vehiclesOut);
+    }
+  }, [vehiclesOut]);
+
+  useEffect(() => {
+    if (vehiclesIn) {
+      setVehiclesInParking(vehiclesIn);
+    }
+  }, [vehiclesIn]);
+
+  useEffect(() => {
+    if (parkingA && parkingB && parkingC) {
       setParkings({
         A: parkingA[0],
         B: parkingB[0],
         C: parkingC[0]
       });
-    } catch (error) {
-      ErrorService.hanldeError(error, actions.onNoti);
     }
-  };
+  }, [parkingA, parkingB, parkingC]);
 
   const handleImport = (values) => {
     importVehicle(values, {
@@ -89,9 +118,9 @@ function Event({}) {
     });
   };
 
-  useEffect(() => {
-    callApi();
-  }, [state.parkingEvent]);
+  // useEffect(() => {
+  //   callApi();
+  // }, [state.parkingEvent]);
 
   return (
     <Layout className="px-4">

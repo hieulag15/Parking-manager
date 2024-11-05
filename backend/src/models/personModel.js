@@ -39,7 +39,7 @@ const personSchema = new mongoose.Schema(
         maxlength: 30,
         trim: true,
         unique: true,
-        sparse: true
+        sparse: true,
       },
       password: {
         type: String,
@@ -55,24 +55,27 @@ const personSchema = new mongoose.Schema(
       },
     },
     driver: {
-      vehicleIds: [
-        { 
-          type: mongoose.Schema.Types.ObjectId,
-          ref: VEHICLE_COLLECTION_NAME,
-          required: true 
+      type: {
+        vehicleIds: [
+          { 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: VEHICLE_COLLECTION_NAME,
+            unique: true,
+            sparse: true,
+          },
+        ],
+        job: {
+          type: String,
+          minlength: 4,
+          maxlength: 50,
+          trim: true,
         },
-      ],
-      job: {
-        type: String,
-        minlength: 4,
-        maxlength: 50,
-        trim: true,
-      },
-      department: {
-        type: String,
-        minlength: 1,
-        maxlength: 50,
-        trim: true,
+        department: {
+          type: String,
+          minlength: 1,
+          maxlength: 50,
+          trim: true,
+        },
       },
     },
   },

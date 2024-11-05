@@ -348,7 +348,7 @@ key: 'department',
                   }}
                   placeholder="Tên"
                   name="name"
-defaultValue={name}
+                  defaultValue={name}
                   onPressEnter={onEnterFilter}
                   onChange={onChangeFilter}
                   allowClear={true}

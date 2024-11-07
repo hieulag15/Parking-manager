@@ -12,17 +12,6 @@ export const createNew = async (req, res) => {
   }
 };
 
-const createManager = async (req, res) => {
-  try {
-    const createManager = await personService.createUserM(req.body);
-    res.status(StatusCodes.CREATED).json(createManager);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error creating manager: ${error.message}` });
-  }
-};
-
 const findByUserName = async (req, res) => {
   try {
     const users = await personService.findByUserName(req.query.username);
@@ -93,28 +82,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-const deleteManager = async (req, res) => {
-  try {
-    const result = await personService.deleteUser(req.query._id, "Manager");
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error deleting manager: ${error.message}` });
-  }
-};
-
-const deleteStaff = async (req, res) => {
-  try {
-    const result = await personService.deleteUser(req.query._id, "Staff");
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error deleting staff: ${error.message}` });
-  }
-};
-
 const deleteAll = async (req, res) => {
   try {
     const result = await personService.deleteAll();
@@ -150,13 +117,10 @@ const findDriverByFilter = async (req, res) => {
 
 const personController = {
   createNew,
-  createManager,
   findById,
   updateUser,
   updateDriver,
   deleteUser,
-  deleteManager,
-  deleteStaff,
   deleteAll,
   deleteDriver,
   findByUserName,

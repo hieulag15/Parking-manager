@@ -37,7 +37,7 @@ function Authen({}) {
   const onFinish = (values) => {
     const { username, password } = values;
     setLoading(true);
-    actions.onLogin({ username, password, role: 'Admin', onComplete, onNoti: actions.onNoti });
+    actions.onLogin({ username, password, onComplete, onNoti: actions.onNoti });
   };
 
   const onFinishFailed = (errorInfo) => {};
@@ -64,7 +64,7 @@ function Authen({}) {
               initialValues={{ role: 'Admin' }}
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}>
-              <Form.Item
+              {/* <Form.Item
                 name="role"
                 className="w-100 d-flex justify-content-center"
                 label=""
@@ -74,7 +74,7 @@ function Authen({}) {
                     <Radio value={role.value}>{role.label}</Radio>
                   ))}
                 </Radio.Group>
-              </Form.Item>
+              </Form.Item> */}
               <Form.Item
                 name="username"
                 rules={[

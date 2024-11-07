@@ -52,6 +52,7 @@ const personSchema = new mongoose.Schema(
         minlength: 3,
         maxlength: 20,
         trim: true,
+        default: "driver",
       },
     },
     driver: {

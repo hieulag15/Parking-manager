@@ -26,7 +26,7 @@ function PasswordForm({ account, isOpen, onClose, noChangeAccount }) {
       };
       const api = await UserApi.changePassword({ ...newPayloay });
       if (api) {
-        onMess({ content: 'Chỉnh sửa nhân viên thành công', type: 'success' });
+        onMess({ content: 'Thay đổi mật khẩu thành công', type: 'success' });
       }
 
       onClose({ afterAction: actions.logout() });

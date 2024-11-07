@@ -72,33 +72,6 @@ const createUser = async (data) => {
   }
 };
 
-const createUserM = async (data) => {
-  try {
-    const hashed = await hashPassword(data.account.password);
-    data.account.password = hashed;
-    data.account.role = "Manager";
-    const createUser = await Person.create(data);
-    if (createUser.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create user",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createUser;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
 const findByUserName = async (username) => {
   try {
     const findUser = await Person.findOne({
@@ -404,7 +377,6 @@ const deleteDriver = async (driverId) => {
 
 const personService = {
   createUser,
-  createUserM,
   findById,
   updateUser,
   updateAvatar,

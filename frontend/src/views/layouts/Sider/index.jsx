@@ -3,7 +3,6 @@ import { Flex, Image, Layout, Menu, Typography, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LOGO from '~/assets/logo/main.svg';
-import { publicRoutes } from '~/routes';
 
 function Sider({ ...props }) {
   const { token } = theme.useToken();
@@ -44,7 +43,7 @@ function Sider({ ...props }) {
         <Menu
           id="menuSider"
           className="mt-5"
-          items={publicRoutes}
+          items={props.items}
           selectedKeys={current?.selectedKeys}
           openKeys={current?.openKeys}
           onSelect={handleChangePage}

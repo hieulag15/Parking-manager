@@ -32,13 +32,6 @@ const checkToken = async (req, res, next) => {
 };
 
 const authentication = async (req, res, next) => {
-  // try {
-  //   // Điều hướng sang tầng Service
-  //   await authService.authentication(req, res);
-  //   next();
-  // } catch (error) {
-  //   next(error);
-  // }
   try {
     const loginUser = await authService.authentication(req, res);
     res.status(StatusCodes.OK).json(loginUser);
@@ -48,12 +41,19 @@ const authentication = async (req, res, next) => {
 };
 
 const reAuthentication = async (req, res, next) => {
+  // try {
+  //   const auth = await authService.reAuthentication(req, res, next);
+  //   res.status(StatusCodes.OK).json(auth);
+  // } catch (error) {
+  //   res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+  // }
   try {
-    // Điều hướng sang tầng Service
-    await authService.reAuthentication(req, res, next);
-    res.status(StatusCodes.OK).json(req.user);
+    // Dieu huong sang tang Service
+    const refreshToken = await authService.reAuthentication(req, res)
+    // console('refreshToken')
+    res.status(StatusCodes.OK).json(refreshToken)
   } catch (error) {
-    next(error);
+    next(error)
   }
 };
 

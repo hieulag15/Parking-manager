@@ -1,5 +1,4 @@
-import Cookies from 'js-cookie';
-import { AccountApi } from '../api';
+import { AuthApi } from '../api';
 import dayjs from 'dayjs';
 import { ErrorService } from '~/services';
 
@@ -10,9 +9,11 @@ export const onLogin = async (params) => {
   let type = 'error';
   let content = '';
   let info = {};
-  const { username, password, onComplete, role } = params;
+  const { username, password, onComplete } = params;
+  let role = null;
   try {
-    const rs = await AccountApi.login({ username, password, role, onNoti });
+    const rs = await AuthApi.authentication({ username, password, onNoti });
+    role = rs.person.account.role;
     if (rs) {
       isLogin = true;
       info = rs?.person || {};
@@ -26,6 +27,7 @@ export const onLogin = async (params) => {
         JSON.stringify({
           isLogin,
           info,
+          role,
           expDate: expirationTime
         })
       );
@@ -44,10 +46,10 @@ export const onLogin = async (params) => {
     type: 'auth',
     payload: {
       isLogin,
-      info
+      info,
+      role
     }
   };
-  // }
 };
 
 export const editProfile = async (state, payload) => {
@@ -69,7 +71,7 @@ export const editProfile = async (state, payload) => {
 };
 
 export const checkAuthenSevice = async ({ onError = null, onFinish = null }) => {
-  let result = await AccountApi.checkToken();
+  let result = await AuthApi.reAuthentication();
   if (result) {
     let account_data = {
       homepage: '/',
@@ -94,7 +96,7 @@ export const checkAuthenSevice = async ({ onError = null, onFinish = null }) => 
 export const onAuthorize = async ({ onError }) => {
   let payload = null;
   try {
-    const api = await AccountApi.checkToken();
+    const api = await AuthApi.reAuthentication();
     payload = api;
   } catch {
     onError();

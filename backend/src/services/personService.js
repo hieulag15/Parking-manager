@@ -72,33 +72,6 @@ const createUser = async (data) => {
   }
 };
 
-const createUserM = async (data) => {
-  try {
-    const hashed = await hashPassword(data.account.password);
-    data.account.password = hashed;
-    data.account.role = "Manager";
-    const createUser = await Person.create(data);
-    if (createUser.acknowledge == false) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Can't create user",
-        "Not create",
-        "BR_person_2"
-      );
-    }
-    return createUser;
-  } catch (error) {
-    if (error.type && error.code)
-      throw new ApiError(
-        error.statusCode,
-        error.message,
-        error.type,
-        error.code
-      );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
-  }
-};
-
 const findByUserName = async (username) => {
   try {
     const findUser = await Person.findOne({
@@ -263,10 +236,9 @@ const updateAvatar = async (_id, image) => {
   }
 };
 
-const updateDriver = async (_id, data, licensePlate, job, deparment) => {
-  console.log('sau khi truyen: ' + _id);
-  const driver = await Person.findOne({ _id: _id });
-  if (!driver) {
+const updateDriver = async (_id, { address, driver, email, name, phone }) => {
+  const person = await Person.findById(_id);
+  if (!person) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
       "Driver not found",
@@ -274,45 +246,27 @@ const updateDriver = async (_id, data, licensePlate, job, deparment) => {
       "BR_person_1"
     );
   }
-  let vehicleId = driver.vehicleIds[0].vehicleId;
-  const vehicle = await Vehicle.findOne({ licensePlate: licensePlate });
 
-  if (!vehicle) {
-    const newVehicle = await Vehicle.create({
-      licensePlate: licensePlate,
-      driverId: driver._id,
-    });
-    vehicleId = newVehicle.insertedId;
-    await addNewVehicle(driver._id, vehicleId);
-  } else if (!vehicle.driverId) {
-    await addNewVehicle(driver._id, vehicle._id);
-    vehicleId = vehicle._id;
-  } else if (!vehicle.driverId.equals(driver._id)) {
-    throw new ApiError(
-      StatusCodes.CONFLICT,
-      "Vehicle already assigned to another driver",
-      "Conflict",
-      "BR_vehicle_1"
-    );
-  } else {
-    vehicleId = vehicle._id.toString();
-  }
+  const { job, department } = driver;
 
-  data = {
-    ...data,
-    driver: { job: job, deparment: deparment },
+  const updateData = {
+    address,
+    email,
+    name,
+    phone,
   };
 
   try {
-    const updateOperation = {
-      $set: {
-        ...data,
+    const result = await Person.findByIdAndUpdate(
+      _id,
+      {
+        $set: {
+          ...updateData,
+          "driver.job": job,
+          "driver.department": department
+        }
       },
-    };
-    const result = await Person.findOneAndUpdate(
-      { _id: _id },
-      updateOperation,
-      { returnDocuments: true }
+      { new: true }
     );
     return result;
   } catch (err) {
@@ -345,6 +299,9 @@ const addNewVehicle = async (personId, vehicleId) => {
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
+  // await Person.findByIdAndUpdate(personId, {
+  //   $push: { vehicleIds: { vehicleId } },
+  // });
 };
 
 const deleteUser = async (_id, role) => {
@@ -420,7 +377,6 @@ const deleteDriver = async (driverId) => {
 
 const personService = {
   createUser,
-  createUserM,
   findById,
   updateUser,
   updateAvatar,

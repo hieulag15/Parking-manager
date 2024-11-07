@@ -12,7 +12,7 @@ export default {
   },
 
   getDrivers: (payload) => {
-    const url = `${DOMAIN}/driver/filter`;
+    const url = `${DOMAIN}/driver`;
     return GET({
       url,
       payload
@@ -21,14 +21,6 @@ export default {
 
   getVehicles: (payload) => {
     const url = `${DOMAIN}/vehicle`;
-    return GET({
-      url,
-      payload
-    });
-  },
-
-  getEmployee: (payload) => {
-    const url = `${DOMAIN}/user/employee`;
     return GET({
       url,
       payload

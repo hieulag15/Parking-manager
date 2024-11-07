@@ -25,19 +25,7 @@ export const vehicleSchema = new Schema({
     trim: true,
     default: 'Car',
   },
-  active: {
-    type: Boolean,
-    default: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: null,
-  },
-  _destroy: {
+  isParked: {
     type: Boolean,
     default: false,
   },

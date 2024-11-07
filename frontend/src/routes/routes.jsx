@@ -44,6 +44,23 @@ const publicRoutes = [
   },
 ];
 
+const driverRoutes = [
+  {
+    key: 'map',
+    label: 'Bản đồ',
+    path: "/map",
+    element: <Map />,
+    icon: <CarOutlined />
+  },
+  {
+    key: 'history',
+    label: 'Lịch sử',
+    path: '/history',
+    element: <History />,
+    icon: <HistoryOutlined />
+  }
+]
+
 const privateRoutes = [];
 
-export { publicRoutes, privateRoutes };
+export { publicRoutes, driverRoutes, privateRoutes };

@@ -18,6 +18,7 @@ import DetailSlot from './DetailSlot';
 import AppContext from '~/context';
 import { ParkingApi } from '~/api';
 import { useGetStatus } from '~/hook/hookParking';
+import socket from '~/socket';
 
 function Map({}) {
   const { token } = theme.useToken();
@@ -42,6 +43,27 @@ function Map({}) {
       setSlots(statusData.slots);
     }
   }, [statusData]);
+
+  //socket
+  useEffect(() => {
+    const handleParkingUpdated = () => {
+      refetch();
+    };
+
+    // Config websocket
+    socket.on('connect', () => {
+      console.log('socket successful');
+    });
+
+    socket.on('parkingUpdated', handleParkingUpdated);
+
+    return () => {
+      socket.off('connect', () => {
+        console.log('socket close');
+      });
+      socket.off('parkingUpdated', handleParkingUpdated);
+    };
+  }, [refetch]);
 
   return (
     <Layout className="px-4">

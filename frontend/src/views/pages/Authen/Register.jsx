@@ -80,6 +80,7 @@ function Register({}) {
   };
 
   return (
+    <Layout className="vh-100">
     <Content className="d-flex justify-content-center align-items-center w-100 h-100">
       <div
         className="py-4 px-4"
@@ -128,7 +129,17 @@ function Register({}) {
             rules={[{ required: true, message: false }]}>
             <Input placeholder="Số 1 Võ Văn Ngân, Linh Chiểu" id="addressInput" />
           </Form.Item>
-          <Form.List name={'licenePlate'}>
+          <Form.Item label="Nghề nghiệp" name={['driver', 'job']} rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="Teacher">Giảng viên</Select.Option>
+              <Select.Option value="Student">Sinh viên</Select.Option>
+              <Select.Option value="Employee">Nhân viên</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="Đơn vị" name={['driver', 'department']} rules={[{ required: true }]}>
+            <Input placeholder="Công nghệ thông tin" />
+          </Form.Item>
+          {/* <Form.List name={'licensePlate'}>
             {(fields, { add, remove }) => (
               <>
                 {fields.map((field, ix) => {
@@ -186,7 +197,75 @@ function Register({}) {
                 </Form.Item>
               </>
             )}
-          </Form.List>
+          </Form.List> */}
+          <Form.List name="vehicles">
+          {(fields, { add, remove }) => (
+            <div
+              style={{
+                display: 'flex',
+                rowGap: 16,
+                flexDirection: 'column'
+              }}>
+              {fields.map((field) => (
+                <Card
+                  size="small"
+                  title={`Xe ${field.name + 1}`}
+                  key={field.key}
+                  extra={
+                    <CloseOutlined
+                      onClick={() => {
+                        remove(field.name);
+                      }}
+                    />
+                  }>
+                  <Form.Item
+                    label="Biển số xe"
+                    name={[field.name, 'licensePlate']}
+                    rules={[
+                      { required: true, message: false },
+                      ({}) => ({
+                        validator(_, value) {
+                          if (ValidateService.licensePlate(value)) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject({ message: 'Sai định dạng (VD: 12A-2184)' });
+                        }
+                      })
+                    ]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    label="Loại xe"
+                    name={[field.name, 'type']}
+                    rules={[{ required: true }]}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Select>
+                      <Select.Option value="Car">Ô tô</Select.Option>
+                      <Select.Option value="Motorbike">Xe máy</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Card>
+              ))}
+
+              <Form.Item
+                shouldUpdate={(pre, curr) => pre.vehicle !== curr.vehicle}
+                wrapperCol={{ span: 24 }}>
+                {({ getFieldValue }) => {
+                  const currVeh = getFieldValue('vehicle');
+                  const disabled = (currVeh?.length || 0) >= 2;
+                  return (
+                    <Button disabled={disabled} type="dashed" onClick={() => add()} block>
+                      + Thêm một xe
+                    </Button>
+                  );
+                }}
+              </Form.Item>
+            </div>
+          )}
+        </Form.List>
           <Form.Item
             label="Mật khẩu"
             name={['password']}
@@ -242,6 +321,7 @@ function Register({}) {
         </Form>
       </div>
     </Content>
+    </Layout>
   );
 }
 

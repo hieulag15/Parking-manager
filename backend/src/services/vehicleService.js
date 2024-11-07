@@ -70,44 +70,19 @@ const getVehicles = async (status) => {
 
 const getVehiclesInParking = async () => {
   try {
-    const parkings = await Parking.find().populate({
-      path: 'slots.parkingTurnId',
-      model: ParkingTurn,
-      populate: {
-        path: 'vehicleId',
-        model: Vehicle,
-      }
-    });
-
-    const parkingObject = parkings.map(parking => parking.toObject());
-    const slots = parkingObject.map(parking => parking.slots).flat();
-    const blankSlots = slots.filter(slot => slot.isBlank === false);
-    const vehicles = blankSlots.map(slot => {
-      if (slot.parkingTurnId && slot.parkingTurnId.vehicleId) {
-          return slot.parkingTurnId.vehicleId;
-      } else {
-          return null;
-      }
-    });
+    const vehicles = await Vehicle.find({ isParked: true });
 
     return vehicles;
   } catch (error) {
     throw new Error(error.message);
   }
-}
+};
 
 const getVehiclesOutParking = async () => {
   try {
-    const allVehicles = await Vehicle.find();
-    const vehiclesInParking = await getVehiclesInParking();
+    const vehicles = await Vehicle.find({ isParked: false });
 
-    const vehiclesInParkingIds = vehiclesInParking.map(vehicle => vehicle._id.toString());
-
-    const vehiclesNotInParking = allVehicles.filter(vehicle => 
-      !vehiclesInParkingIds.includes(vehicle._id.toString())
-    );
-
-    return vehiclesNotInParking;
+    return vehicles;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -121,6 +96,17 @@ const getListVehicleByVehicleIds = async (ids) => {
   }
 }
 
+const updateIsParked = async (vehicleId, isParked) => {
+  try {
+    return await Vehicle.updateOne(
+      { _id: vehicleId },
+      { $set: { isParked }}
+    );
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
 const vehicleService = {
   getVehicle,
   create,
@@ -128,6 +114,7 @@ const vehicleService = {
   updateDriverId,
   getVehicles,
   getListVehicleByVehicleIds,
+  updateIsParked
 };
 
 export default vehicleService;

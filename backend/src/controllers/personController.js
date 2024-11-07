@@ -12,17 +12,6 @@ export const createNew = async (req, res) => {
   }
 };
 
-const createManager = async (req, res) => {
-  try {
-    const createManager = await personService.createUserM(req.body);
-    res.status(StatusCodes.CREATED).json(createManager);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error creating manager: ${error.message}` });
-  }
-};
-
 const findByUserName = async (req, res) => {
   try {
     const users = await personService.findByUserName(req.query.username);
@@ -48,7 +37,6 @@ const findById = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const newUser = req.body;
-    delete newUser.account;
     const result = await personService.updateUser(req.query.id, newUser);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
@@ -72,10 +60,9 @@ const updateAvatar = async (req, res) => {
 
 const updateDriver = async (req, res) => {
   try {
-    const { data, licensePlate, job, deparment} = req.body;
+    const payload = req.body;
     const id = req.query._id;
-    console.log('truoc khi truyen: ' + id);
-    const result = await personService.updateDriver(id, data, licensePlate, job, deparment);
+    const result = await personService.updateDriver(id, payload);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res
@@ -92,28 +79,6 @@ const deleteUser = async (req, res) => {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: `Error deleting user: ${error.message}` });
-  }
-};
-
-const deleteManager = async (req, res) => {
-  try {
-    const result = await personService.deleteUser(req.query._id, "Manager");
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error deleting manager: ${error.message}` });
-  }
-};
-
-const deleteStaff = async (req, res) => {
-  try {
-    const result = await personService.deleteUser(req.query._id, "Staff");
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: `Error deleting staff: ${error.message}` });
   }
 };
 
@@ -152,13 +117,10 @@ const findDriverByFilter = async (req, res) => {
 
 const personController = {
   createNew,
-  createManager,
   findById,
   updateUser,
   updateDriver,
   deleteUser,
-  deleteManager,
-  deleteStaff,
   deleteAll,
   deleteDriver,
   findByUserName,

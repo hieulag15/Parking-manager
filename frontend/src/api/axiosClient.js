@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import AppContext from '~/context';
 
 const axiosClient = axios.create({
   headers: {
@@ -9,7 +9,7 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
-  config.headers['Authorization'] = `bearer ${Cookies.get('access_token')}`;
+  config.headers['Authorization'] = `bearer ${localStorage.getItem('access_token')}`;
   return config;
 });
 

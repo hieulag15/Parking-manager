@@ -32,7 +32,7 @@ function Map({}) {
     setSearchParams({ zone: e.target.value });
   };
 
-  const { data: statusData, refetch, isFetching: loading } = useGetStatus({ zone });
+  const { data: statusData, refetch, isFetching: loading } = useGetStatus({ });
 
   useEffect(() => {
     refetch();

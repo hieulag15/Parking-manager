@@ -1,9 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import Vehicle from "../models/vehicleModel.js"; // Adjust the import based on your project structure
+import Vehicle from "../models/vehicleModel.js"; 
 import ApiError from "../utils/ApiError.js";
-import Parking from "../models/parkingModel.js";
-import ParkingTurn from "../models/parkingTurnModel.js";
-import mongoose from 'mongoose';
 
 const findByLicensePlate = async (licensePlate) => {
   try {

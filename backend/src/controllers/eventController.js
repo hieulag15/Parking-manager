@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 const getEvent = async (req, res, next) => {
   try {
     const filter = req.query
-    const getEvens = await eventService.findEvent(filter);
+    const getEvens = await eventService.findEvent(filter, next);
     res.status(StatusCodes.OK).json(getEvens);
   } catch (error) {
     next(error);
@@ -13,7 +13,7 @@ const getEvent = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
     try {
-        const newEvent = await eventService.create(req.body);
+        const newEvent = await eventService.create(req.body, next);
         res.status(StatusCodes.CREATED).json(newEvent);
     } catch (error) {
         next(error);

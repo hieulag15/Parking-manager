@@ -35,7 +35,7 @@ const refreshToken = async (req, res) => {
   try {
     const refreshToken = req.cookie.refreshToken;
     if (!refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authenticated");
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Bạn chưa được xác thực");
     }
     //
 
@@ -61,7 +61,7 @@ const refreshToken = async (req, res) => {
   }
 };
 
-const authentication = async (req, res) => {
+const authentication = async (req, res, next) => {
   const { username, password } = req.body;
   try {
     const user = await Person.findOne({ 'account.username': username });
@@ -78,12 +78,12 @@ const authentication = async (req, res) => {
       user.account.password
     );
     if (!isMatch) {
-      throw new ApiError(
+      return next(new ApiError(
         StatusCodes.UNAUTHORIZED,
         "Password mismatch",
         "Invalid",
         "BR_person_1"
-      );
+      ));
     }
 
     const accessToken = generateAccessToken(user);

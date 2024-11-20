@@ -17,27 +17,30 @@ const verifyToken = (req, res, next) => {
     const accessToken = token.split(' ')[1];
     jwt.verify(accessToken, env.JWT_ACCESS_KEY, (err, user) => {
       if (err) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, {message: 'Token không hợp lệ'}, {type: 'auth'}, {code: 'BR_auth' });
+        return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Token không hợp lệ', 'auth', 'BR_auth'));
       }
       req.user = user;
       next();
     });
   } else {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, {message: 'Bạn chưa được xác thực'}, {type: 'auth'}, {code: 'BR_auth' });
+    return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn chưa được xác thực', 'auth', 'BR_auth'));
   }
 };
 
 const verifyTokenAndAdmin = (req, res, next) => {
-  verifyToken(req, res, () => {
-    if (req.user.role == 'Admin' ) {
+  verifyToken(req, res, (err) => {
+    if (err) {
+      return next(err);
+    }
+    if (req.user.role === 'Admin') {
       next();
     } else {
-      throw new ApiError(
+      return next(new ApiError(
         StatusCodes.UNAUTHORIZED,
         'Bạn không được phép thực hiện hành động này',
         'auth',
         'BR_auth',
-      );
+      ));
     }
   });
 };

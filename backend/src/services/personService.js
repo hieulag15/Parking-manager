@@ -299,9 +299,6 @@ const addNewVehicle = async (personId, vehicleId) => {
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
-  // await Person.findByIdAndUpdate(personId, {
-  //   $push: { vehicleIds: { vehicleId } },
-  // });
 };
 
 const deleteUser = async (_id, role) => {

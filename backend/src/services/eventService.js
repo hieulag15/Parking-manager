@@ -1,16 +1,18 @@
 import Event from '../models/eventModel.js';
 import moment from 'moment';
+import { StatusCodes } from "http-status-codes";
+import ApiError from '../utils/ApiError.js';
 
-const create = async (eventData) => {
+const create = async (eventData, next) => {
     try {
       const event = await Event.create(eventData);
       return event;
     } catch (error) {
-      throw new Error(`Error creating event: ${error.message}`);
+      return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
     }
 };
 
-const findEvent = async ({ pageSize, pageIndex, startDay, endDay, startTime, endTime, ...params }) => {
+const findEvent = async ({ pageSize, pageIndex, startDay, endDay, startTime, endTime, ...params }, next) => {
     try {
         const filter = {};
         if (params.name) filter['name'] = params.name;
@@ -50,7 +52,7 @@ const findEvent = async ({ pageSize, pageIndex, startDay, endDay, startTime, end
           totalPage,
         };
       } catch (error) {
-        throw new Error(error.message);
+        return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message));
       }
 };
 

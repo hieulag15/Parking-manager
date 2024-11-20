@@ -1,9 +1,9 @@
 import io from 'socket.io-client';
 
-const socket = io("http://localhost:5000", {   //   import.meta.env.VITE_DOMAIN_WS
+const socket = io("http://localhost:5000", {
   path: '/socket',
-  transports: ['websocket'], // use only WebSocket transport (optional)
-  withCredentials: true, // include credentials when making cross-origin requests
+  transports: ['websocket'],
+  withCredentials: true
 });
 
 export default socket;

@@ -19,24 +19,6 @@ function DetailSlot({ position, zone, vehicle, driver }) {
   const { token } = theme.useToken();
   const { colorTextSecondary } = token;
 
-  // driver = {
-  //   name: 'fjgsljgs',
-  //   adress: 'TP HCM',
-  //   phone: '1234567890',
-  //   email: 'minhtc1910@gmail.com',
-  //   job: 'Giảng viên'
-  // };
-
-  // vehicle = {
-  //   _id: '654a1fd36a0751a7e7c0b9ef',
-  //   driverId: '6555eeb9e570d29a3c1f67ab',
-  //   licenePlate: '12A-2171',
-  //   type: 'Car',
-  //   createdAt: 1699356625436,
-  //   updatedAt: null,
-  //   _destroy: false
-  // };
-
   let driverInfo = [];
 
   driver = {

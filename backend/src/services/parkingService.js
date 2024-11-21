@@ -57,7 +57,7 @@ const getParkingByZone = async (zone, next) => {
 
         // Tính toán số lượng chỗ đậu xe không có người chiếm dụng
         const totalSlots = parkingWithPopulatedSlots.slots.length;
-        const occupiedSlots = parkingWithPopulatedSlots.slots.filter(slot => slot.parkingTurn).length;
+        const occupiedSlots = parkingWithPopulatedSlots.slots.filter(slot => slot.isBlank).length;
         const unoccupiedSlots = totalSlots - occupiedSlots;
 
         // Bổ sung trường unoccupied

@@ -33,6 +33,7 @@ function Map({}) {
   };
 
   const { data: statusData, refetch, isFetching: loading } = useGetStatus({ zone});
+  console.log('status', statusData);
 
   useEffect(() => {
     refetch();
@@ -188,7 +189,6 @@ function Map({}) {
           </Spin>
         </TransformBlock>
       </Content>
-      <Footer />
     </Layout>
   );
 }

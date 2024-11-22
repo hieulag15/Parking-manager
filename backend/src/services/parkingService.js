@@ -14,6 +14,24 @@ const create = async (parkingData, next) => {
     }
 };
 
+const update = async (parkingId, parkingData, next) => {
+  try {
+    const parking = await Parking.findByIdAndUpdate(parkingId, parkingData, { new: true });
+    return parking;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
+const deleteParking = async (parkingId, next) => {
+  try {
+    await Parking.findByIdAndDelete(parkingId);
+    return { message: 'Parking deleted successfully' };
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
 const getParkingByZone = async (zone, next) => {
     try {
       const parking = await Parking.findOne({ zone }).populate({
@@ -156,6 +174,8 @@ const parkingService = {
     updateSlot,
     isSlotBlank,
     findEnptySlot,
+    update,
+    deleteParking,
 };
 
 export default parkingService;

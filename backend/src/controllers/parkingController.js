@@ -24,6 +24,16 @@ const getParkingByZoneController = async (req, res, next) => {
     }
 };
 
+const getSuggestedSlotController = async (req, res, next) => {
+  try {
+    const parkingId = req.params.parkingId;
+    const slot = await parkingService.findEnptySlot(parkingId, next);
+    res.status(200).json(slot);
+  } catch (error) {
+    res.status(500).json({ message: `Error fetching suggested slot: ${error.message}` });
+  }
+};
+
 const parkingController = {
   createParkingController,
   getParkingByZoneController

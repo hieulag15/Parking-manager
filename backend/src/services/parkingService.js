@@ -132,11 +132,30 @@ const isSlotBlank = async (parkingId, position, next) => {
   }
 }
 
+const findEnptySlot = async (parkingId, next) => {
+  try {
+    const parking = await Parking.findById(parkingId);
+    if (!parking) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'Parking not found'));
+    }
+
+    const emptySlot = parking.slots.find(slot => slot.isBlank);
+    if (!emptySlot) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'No empty slot found'));
+    }
+    console.log("test: ", emptySlot.position);
+    return emptySlot.position;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
 const parkingService = {
     create,
     getParkingByZone,
     updateSlot,
     isSlotBlank,
+    findEnptySlot,
 };
 
 export default parkingService;

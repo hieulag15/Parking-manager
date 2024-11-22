@@ -34,9 +34,34 @@ const getSuggestedSlotController = async (req, res, next) => {
   }
 };
 
+const updateParkingController = async (req, res, next) => {
+  try {
+    const parkingId = req.body.parkingId;
+    const data = req.body.data;
+
+    const updatedParking = await parkingService.update(parkingId, data, next);
+    res.status(200).json(updatedParking);
+  } catch (error) {
+    res.status(500).json({ message: `Error updating parking: ${error.message}` });
+  }
+}
+
+const deleteParkingController = async (req, res, next) => {
+  try {
+    const parkingId = req.params.parkingId;
+
+    const deletedParking = await parkingService.deleteParking(parkingId);
+    res.status(204).json(deletedParking);
+  } catch (error) {
+    res.status(500).json({ message: `Error deleting parking: ${error.message}` });
+  }
+}
+
 const parkingController = {
   createParkingController,
-  getParkingByZoneController
+  getParkingByZoneController,
+  updateParkingController,
+  deleteParkingController
 }
 
 export default parkingController;

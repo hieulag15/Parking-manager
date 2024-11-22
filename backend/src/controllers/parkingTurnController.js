@@ -84,7 +84,7 @@ const parkingTurnController = {
   getVehicleInOutNumber,
   getVehicleInOutNumberByHour,
   getRevenue,
-  GetRevenueByHour
+  GetRevenueByHour,
   findVehicleInParkingTurn
 }
 

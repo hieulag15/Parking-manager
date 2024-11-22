@@ -169,18 +169,32 @@ const findDriverByFilter = async ({ pageSize, pageIndex, ...params }) => {
 };
 
 const updateUser = async (_id, data) => {
-  data.updateAt = Date.now();
   try {
-    const updateOperation = {
-      $set: {
-        ...data,
-      },
-    };
+    const updateOperation = { $set: {} };
+
+    // Kiểm tra và xử lý mật khẩu
+    if (data.account?.password) {
+      updateOperation.$set["account.password"] = await hashPassword(data.account.password);
+      delete data.account.password;
+    }
+
+    // Cập nhật các trường khác của `account`
+    if (data.account) {
+      Object.entries(data.account).forEach(([key, value]) => {
+        updateOperation.$set[`account.${key}`] = value;
+      });
+      delete data.account;
+    }
+
+    // Cập nhật các trường khác ngoài `account`
+    Object.assign(updateOperation.$set, data);
+
     const update = await Person.findOneAndUpdate(
       { _id: _id },
       updateOperation,
       { new: true }
     );
+
     if (update == null) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -189,18 +203,48 @@ const updateUser = async (_id, data) => {
         "BR_person_1"
       );
     }
+
     return update;
   } catch (error) {
-    if (error.type && error.code)
+    if (error.type && error.code) {
       throw new ApiError(
         error.statusCode,
         error.message,
         error.type,
         error.code
       );
-    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    } else {
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    }
   }
 };
+
+
+const changePassword = async (payload, next) => {
+  const { id, password } = payload;
+  try {
+    const hashed = await hashPassword(password);
+
+    const update = await Person.findOneAndUpdate(
+      { _id: id },
+      { $set: { "account.password": hashed } },
+      { new: true }
+    );
+
+    if (update == null) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "User not found",
+        "Not found",
+        "BR_person_1"
+      );
+    }
+
+    return update;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message));
+  }
+}
 
 const updateAvatar = async (_id, image) => {
   try {
@@ -376,6 +420,7 @@ const personService = {
   createUser,
   findById,
   updateUser,
+  changePassword,
   updateAvatar,
   updateDriver,
   deleteUser,

@@ -5,9 +5,10 @@ import AppContext from '~/context';
 import { ErrorService, ValidateService } from '~/services';
 import { UserApi } from '~/api';
 
-function PasswordForm({ account, isOpen, onClose, noChangeAccount }) {
+function PasswordForm({ isOpen, onClose, noChangeAccount }) {
   const [form] = Form.useForm();
   const { state, actions } = useContext(AppContext);
+  const { auth } = state;
   const { onNoti, onMess } = actions;
   const [loading, setLoading] = useState(false);
 
@@ -17,14 +18,15 @@ function PasswordForm({ account, isOpen, onClose, noChangeAccount }) {
   };
 
   const onFinish = async (values) => {
+    const { info } = auth;
     try {
       setLoading(true);
       delete values.confirmNewPassword;
-      const newPayloay = {
-        ...account,
-        ...values
+      const payloay = {
+        id: info._id,
+        password: values.newPassword,
       };
-      const api = await UserApi.changePassword({ ...newPayloay });
+      const api = await UserApi.changePassword(payloay);
       if (api) {
         onMess({ content: 'Thay đổi mật khẩu thành công', type: 'success' });
       }

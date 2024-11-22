@@ -52,7 +52,7 @@ export default {
   },
 
   edit: (_id, payload) => {
-    const url = `${DOMAIN}/user?_id=${_id}`;
+    const url = `${DOMAIN}/person?_id=${_id}`;
     return PUT({
       url,
       payload
@@ -102,10 +102,10 @@ export default {
   },
 
   changePassword: (payload) => {
-    const url = `${DOMAIN}/user/changePassword`;
-    return POST({
+    const url = `${DOMAIN}/person/change-password`;
+    return PUT({
       url,
-      payload,
+      payload
     });
   }
 };

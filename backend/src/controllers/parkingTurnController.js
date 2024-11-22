@@ -17,7 +17,7 @@ const createParkingTurn = async (req, res, next) => {
     if (action === 'out') {
       parkingTurn = await parkingTurnService.outParking(data, next);
     }
-    server.io.emit('parkingUpdated');
+    server.io.emit('parkingUpdated', [parkingTurn]);
     server.io.emit('notification-parking', { message: 'Car enters the parking lot' })
     res.status(201).json(parkingTurn);
   } catch (error) {

@@ -36,8 +36,8 @@ const findById = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const newUser = req.body;
-    const result = await personService.updateUser(req.query.id, newUser);
+    const payload = req.body;
+    const result = await personService.updateUser(req.query.id, payload);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     res
@@ -45,6 +45,16 @@ const updateUser = async (req, res) => {
       .json({ message: `Error updating user: ${error.message}` });
   }
 };
+
+const changePassword = async (req, res, next) => {
+  try {
+    const payload = req.body;
+    const result = await personService.changePassword(payload, next);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Error changing password: ${error.message}` });
+  }
+}
 
 const updateAvatar = async (req, res) => {
   try {
@@ -119,6 +129,7 @@ const personController = {
   createNew,
   findById,
   updateUser,
+  changePassword,
   updateDriver,
   deleteUser,
   deleteAll,

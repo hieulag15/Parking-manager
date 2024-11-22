@@ -22,7 +22,7 @@ const httpServer = createServer(app);
 io = new Server(httpServer, {
   path: '/socket',
   cors: {
-    origin: ['http://localhost:5173/'],
+    origin: [`https://${env.APP_HOST}:5173/`],
   },
   transports: ['websocket'],
 });

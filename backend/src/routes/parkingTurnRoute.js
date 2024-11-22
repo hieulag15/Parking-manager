@@ -10,5 +10,6 @@ router.get('/getVehicleInOutNumber', verifyTokenMidleware.verifyTokenAndAdmin, p
 router.get('/getVehicleInOutNumberByHour', verifyTokenMidleware.verifyTokenAndAdmin, parkingTurnController.getVehicleInOutNumberByHour);
 router.get('/getRevenue', verifyTokenMidleware.verifyTokenAndAdmin, parkingTurnController.getRevenue);
 router.get('/GetRevenueByHour', verifyTokenMidleware.verifyTokenAndAdmin, parkingTurnController.getRevenueByHour);
+router.get('/', verifyTokenMidleware.verifyTokenAndAdmin, parkingTurnController.findVehicleInParkingTurn);
 
 export const parkingTurnRoute = router;

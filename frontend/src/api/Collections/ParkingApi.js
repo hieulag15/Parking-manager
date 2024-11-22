@@ -12,7 +12,7 @@ export default {
   // },
 
   getStatus: (payload) => {
-    const url = `${DOMAIN}/parking?zone=${payload.zone}`;
+    const url = `${DOMAIN}/parking`;
     return GET({
       url,
       payload
@@ -34,6 +34,14 @@ export default {
     const url = `${DOMAIN}/parking-turn?action=out`;
     console.log(payload);
     return POST({
+      url,
+      payload
+    });
+  },
+
+  findVehicleInParkingTurn: (payload) => {
+    const url = `${DOMAIN}/parking-turn`;
+    return GET({
       url,
       payload
     });

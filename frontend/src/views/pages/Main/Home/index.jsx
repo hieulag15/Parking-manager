@@ -73,7 +73,6 @@ function Home({}) {
           </Col>
         </Row>
       </Content>
-      <Footer />
     </Layout>
   );
 }

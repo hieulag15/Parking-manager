@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Card, Layout, Row, Table, Typography } from 'antd';
+import { Card, Layout, Row, Table, Typography, Space } from 'antd';
 import { Content, Footer, Header } from '~/views/layouts';
 import { getColumns } from './data';
 import { useSearchParams } from 'react-router-dom';
@@ -8,6 +8,9 @@ import Filter from '~/views/components/Filter';
 import { useTranslation } from 'react-i18next';
 import { useEvents } from '~/hook/hookMonitor';
 import socket from '~/socket';
+import { HistoryOutlined, FilterOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
 
 function History({}) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -71,7 +74,11 @@ function History({}) {
     <Layout className="px-4">
       <Header className="border-1" title={'Lịch sử sự kiện'} />
       <Content className="w-100 py-3">
-        <Card>
+        <Card className="mb-6 shadow-md">
+          <Space className="mb-4" align="center">
+            <FilterOutlined className="text-lg text-blue-500" />
+            <Title level={4} className="m-0">Bộ lọc</Title>
+          </Space>
           <Filter
             filter={params}
             onChange={onChangeFilter}
@@ -81,12 +88,10 @@ function History({}) {
                 name: 'name',
                 type: 'select',
                 inputProps: {
-                  options: events.map((event) => {
-                    return {
-                      label: event.label,
-                      value: event.value
-                    };
-                  }),
+                  options: events.map((event) => ({
+                    label: event.label,
+                    value: event.value
+                  })),
                   allowClear: true,
                   placeholder: 'Chọn'
                 }
@@ -96,7 +101,6 @@ function History({}) {
                 name: 'position',
                 type: 'input',
                 inputProps: {
-                  options: [],
                   placeholder: 'Nhập'
                 }
               },
@@ -105,7 +109,6 @@ function History({}) {
                 name: 'licensePlate',
                 type: 'input',
                 inputProps: {
-                  options: [],
                   placeholder: 'Nhập'
                 }
               },
@@ -114,7 +117,6 @@ function History({}) {
                 name: 'rangeDate',
                 type: 'range',
                 inputProps: {
-                  options: [],
                   allowClear: true,
                   format: 'L'
                 }
@@ -124,7 +126,6 @@ function History({}) {
                 name: 'timePickerRange',
                 type: 'timePickerRange',
                 inputProps: {
-                  options: [],
                   format: 'HH:mm',
                   allowClear: true
                 }
@@ -134,13 +135,14 @@ function History({}) {
                 name: 'driverName',
                 type: 'input',
                 inputProps: {
-                  options: [],
                   placeholder: 'Nhập'
                 }
               }
             ]}
             events={events}
           />
+        </Card>
+        <Card className="shadow-md">
           <CustomedTable
             dataSource={data}
             filter={params}
@@ -151,11 +153,10 @@ function History({}) {
             pageSize={pageSize}
             pageIndex={pageIndex}
             onChange={onChangeFilter}
-            scroll={{ y: 1000, scrollToFirstRowOnChange: true }}
+            scroll={{ y: 'calc(100vh - 400px)', scrollToFirstRowOnChange: true }}
           />
         </Card>
       </Content>
-      <Footer />
     </Layout>
   );
 }

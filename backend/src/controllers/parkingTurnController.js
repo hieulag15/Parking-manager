@@ -69,12 +69,23 @@ const GetRevenueByHour = async (req, res, next) => {
   }
 }
 
+const findVehicleInParkingTurn = async (req, res, next) => {
+  try {
+    const licensePlate = req.query.licensePlate;
+    const parkingTurn = await parkingTurnService.findVehicleInParkingTurn(licensePlate, next);
+    res.status(200).json(parkingTurn);
+  } catch (error) {
+    res.status(500).json({ message: `Error getting parking turn by license plate: ${error.message}` });
+  }
+}
+
 const parkingTurnController = {
   createParkingTurn,
   getVehicleInOutNumber,
   getVehicleInOutNumberByHour,
   getRevenue,
   GetRevenueByHour
+  findVehicleInParkingTurn
 }
 
 export default parkingTurnController;

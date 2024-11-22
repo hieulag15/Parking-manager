@@ -30,3 +30,11 @@ export const useExportVehicle = () => {
     },
   });
 };
+
+export const useFindVehicleInParkingTurn = (payload) => {
+  return useQuery({
+    queryKey: ['findVehicle', payload],
+    queryFn: () => ParkingApi.findVehicleInParkingTurn(payload),
+    keepPreviousData: true
+  });
+}

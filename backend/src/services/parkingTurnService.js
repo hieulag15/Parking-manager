@@ -18,7 +18,7 @@ const create = async (data, next) => {
     }
 
     // Kiểm tra xe có trong bãi chưa
-    const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
+    const vehicleInParking = await findParkingTurnInParking(data.licensePlate);
 
     if (vehicleInParking) {
       return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi'));
@@ -86,7 +86,7 @@ const createWithoutPosition = async (data, next) => {
     }
 
     // Kiểm tra xe có trong bãi chưa
-    const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
+    const vehicleInParking = await findParkingTurnInParking(data.licensePlate);
 
     if (vehicleInParking) {
       return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi'));
@@ -125,7 +125,7 @@ const createWithoutPosition = async (data, next) => {
 
 const outParking = async (data, next) => {
   try {
-    const parkingTurn = await findVehicleInParkingTurn(data.licensePlate);
+    const parkingTurn = await findParkingTurnInParking(data.licensePlate);
     const parking = await Parking.findOne({ _id: parkingTurn.parkingId });
     const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
 
@@ -190,6 +190,27 @@ const updateParkingTurnEndTime = async (vehicleId, next) => {
 };
 
 const findVehicleInParkingTurn = async (licensePlate, next) => {
+  const vehicle = await Vehicle.findOne({ licensePlate });
+  if (!vehicle) {
+    return next(new ApiError(StatusCodes.NOT_FOUND, 'Vehicle not found', 'Not Found', 'BR_parking_4'));
+  }
+  try {
+    const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }).populate('parkingId');
+    if (!parkingTurn) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'Parking turn not found', 'Not Found', 'BR_parking_5'));
+    }
+
+    const parkingTurnWithPopulatedParking = parkingTurn.toObject();
+    parkingTurnWithPopulatedParking.parking = parkingTurnWithPopulatedParking.parkingId;
+    delete parkingTurnWithPopulatedParking.parkingId;
+
+    return parkingTurnWithPopulatedParking;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tìm kiếm xe trong bãi thất bại', 'Not Created', 'BR_parking_3'));
+  }
+};
+
+const findParkingTurnInParking = async (licensePlate, next) => {
   const vehicle = await Vehicle.findOne({ licensePlate });
   try {
     const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }); // thì xe có trong bãi
@@ -516,6 +537,7 @@ const parkingTurnService = {
   getVehicleInOutNumberByHour,
   getRevenue,
   GetRevenueByHour,
+  findVehicleInParkingTurn,
 };
 
 export default parkingTurnService;

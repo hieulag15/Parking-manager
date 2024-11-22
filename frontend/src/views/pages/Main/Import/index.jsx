@@ -1,60 +1,74 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Button, Card, Col, Form, Input, Layout, Radio, Row, Select, Space, Switch } from 'antd';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Button, Card, Col, Form, Input, Layout, Radio, Row, Select, Switch, Space, Typography, message } from 'antd';
 import { Content, Footer, Header } from '~/views/layouts';
 import AppContext from '~/context';
-import { ParkingApi, UserApi } from '~/api';
 import { ErrorService, ValidateService } from '~/services';
 import { SLOTS_A } from '../Map/parkingA';
 import { SLOTS_B } from '../Map/parkingB';
 import { SLOTS_C } from '../Map/parkingC';
-import { useImportVehicle, useExportVehicle, useGetStatus } from '~/hook/hookParking';
+import { useImportVehicle, useGetStatus } from '~/hook/hookParking';
 import { useGetVehicles } from '~/hook/hookUser';
-import { CarOutlined } from '@ant-design/icons';
+import { QRCodeSVG } from 'qrcode.react';
+import { CarOutlined, QrcodeOutlined, StopOutlined } from '@ant-design/icons';
+import { QrReader } from 'react-qr-reader';
 
-const formItemLayout = {
-  labelCol: {
-    sm: { span: 6 }
-  },
-  wrapperCol: {
-    sm: { span: 24 }
-  }
-};
+const { Title, Text } = Typography;
 
 const zones = ['A', 'B', 'C'];
 
-function Event({}) {
-  const { state, actions } = useContext(AppContext);
+function Import() {
+  const { actions } = useContext(AppContext);
   const [vehiclesOutParking, setVehiclesOutParking] = useState([]);
-  const [vehiclesInParking, setVehiclesInParking] = useState([]);
   const [parkings, setParkings] = useState({});
   const [importForm] = Form.useForm();
-  const [exportForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [isSelect, setIsSelect] = useState(false);
+  const [qrData, setQrData] = useState(null);
+  const [licensePlate, setLicensePlate] = useState(''); // Thêm trạng thái để lưu trữ giá trị của licensePlate
   const { mutate: importVehicle, isLoading: isImportLoading } = useImportVehicle();
-  const { mutate: exportVehicle, isLoading: isExportLoading } = useExportVehicle();
-  const occupiedSlots = useMemo(() => {
-    const { A: zoneA, B: zoneB, C: zoneC } = parkings;
-    return [...(zoneA?.slots || []), ...(zoneB?.slots || []), ...(zoneC?.slots || [])];
-  }, [parkings]);
 
   const { data: vehiclesOut } = useGetVehicles({ status: 'out' });
-  const { data: vehiclesIn } = useGetVehicles({ status: 'in' });
   const { data: parkingA } = useGetStatus({ zone: 'A' });
   const { data: parkingB } = useGetStatus({ zone: 'B' });
   const { data: parkingC } = useGetStatus({ zone: 'C' });
+
+  const [scanning, setScanning] = useState(false);
+
+  const handleScan = useCallback((result) => {
+    if (result) {
+      try {
+        const parsedData = JSON.parse(result.text);
+        importForm.setFieldsValue(parsedData);
+        setLicensePlate(parsedData.licensePlate); // Cập nhật giá trị của licensePlate
+        setScanning(false);
+        message.success(`Đã quét thành công: ${parsedData.licensePlate}`);
+      } catch (error) {
+        console.error('Error parsing QR data:', error);
+        message.error('Định dạng mã QR không hợp lệ');
+      }
+    }
+  }, [importForm]);
+
+  const handleError = useCallback((err) => {
+    console.error('Camera Error:', err);
+    if (err.name === 'NotAllowedError') {
+      message.error('Truy cập camera bị từ chối. Vui lòng cho phép truy cập camera trong cài đặt trình duyệt của bạn.');
+    } else if (err.name === 'NotFoundError') {
+      message.error('Không tìm thấy camera. Vui lòng kết nối camera và thử lại.');
+    } else {
+      message.error('Lỗi khi quét mã QR. Vui lòng thử lại.');
+    }
+  }, []);
+
+  const toggleScanning = useCallback(() => {
+    setScanning(prev => !prev);
+  }, []);
 
   useEffect(() => {
     if (vehiclesOut) {
       setVehiclesOutParking(vehiclesOut);
     }
   }, [vehiclesOut]);
-
-  useEffect(() => {
-    if (vehiclesIn) {
-      setVehiclesInParking(vehiclesIn);
-    }
-  }, [vehiclesIn]);
 
   useEffect(() => {
     if (parkingA && parkingB && parkingC) {
@@ -67,6 +81,15 @@ function Event({}) {
   }, [parkingA, parkingB, parkingC]);
 
   const handleImport = (values) => {
+    const currentTime = new Date().toISOString();
+    const qrCodeData = {
+      licensePlate: values.licensePlate,
+    //   zone: values.zone,
+    //   position: values.position,
+    //   time: currentTime
+    };
+    setQrData(qrCodeData);
+
     importVehicle(values, {
       onSuccess: () => {
         actions.onNoti({
@@ -81,32 +104,76 @@ function Event({}) {
     });
   };
 
-  const handleExport = (values) => {
-    exportVehicle(values, {
-      onSuccess: () => {
-        actions.onNoti({
-          type: 'success',
-          message: 'Xuất xe thành công',
-          description: values.licensePlate
-        });
-      },
-      onError: (error) => {
-        ErrorService.hanldeError(error, actions.onNoti);
-      }
-    });
-  };
-
   return (
     <Layout className="px-4">
-      <Header className="border-1" title={'Nhập xuất xe'} />
+      <Header className="border-1" title={'Xe vào'} />
       <Content className="w-100 py-3">
-        <Row gutter={16}>
+        <Row gutter={24}>
+        <Col span={24} lg={12}>
+          {isSelect ? (
+            <Card
+            title={<Space><QrcodeOutlined /> Quét mã QR</Space>}
+            className="w-full"
+            >
+            <div className="relative">
+                {scanning ? (
+                <>
+                    <QrReader
+                    onResult={handleScan}
+                    onError={handleError}
+                    constraints={{
+                        facingMode: 'environment'
+                    }}
+                    className="w-full aspect-square"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative w-48 h-48 border-2 border-red-500">
+                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-red-500" />
+                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-red-500" />
+                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-red-500" />
+                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-red-500" />
+                    </div>
+                    </div>
+                    <div className="text-center mt-4">
+                    <Text className="text-gray-500">Đặt mã QR vào khung để quét</Text>
+                    </div>
+                </>
+                ) : (
+                <div className="h-64 flex items-center justify-center text-gray-400">
+                    Camera đã tắt
+                </div>
+                )}
+                <Button 
+                type={scanning ? "default" : "primary"} 
+                onClick={toggleScanning} 
+                icon={scanning ? <StopOutlined /> : <QrcodeOutlined />}
+                className="mt-4"
+                block
+                >
+                {scanning ? "Dừng quét" : "Bắt đầu quét"}
+                </Button>
+            </div>
+            </Card>
+            ) : (
+            <Card title={<Space><QrcodeOutlined />Mã QR</Space>}>
+              {qrData ? (
+                <div className="flex justify-center">
+                  <QRCodeSVG value={JSON.stringify(qrData)} size={500} />
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-gray-400">
+                  QR code sẽ xuất hiện sau khi nhập thông tin xe
+                </div>
+              )}
+            </Card>
+            )}
+          </Col>
           <Col span={24} lg={12}>
             <Card
               title={<Space><CarOutlined /> Thông tin xe</Space>}
               extra={
                 <Switch
-                  checkedChildren="Chọn"
+                  checkedChildren="Quét mã QR"
                   unCheckedChildren="Nhập"
                   checked={isSelect}
                   onChange={(checked) => setIsSelect(checked)}
@@ -134,13 +201,7 @@ function Event({}) {
                   ]}
                 >
                   {isSelect ? (
-                    <Select placeholder="Chọn biển số xe">
-                      {vehiclesOutParking && Array.isArray(vehiclesOutParking) && vehiclesOutParking.map((el) => (
-                        <Select.Option key={el.licensePlate} value={el.licensePlate}>
-                          {el.licensePlate}
-                        </Select.Option>
-                      ))}
-                    </Select>
+                    <Input placeholder="A1-013" value={licensePlate} readOnly />
                   ) : (
                     <Input placeholder="A1-013" />
                   )}
@@ -215,53 +276,10 @@ function Event({}) {
               </Form>
             </Card>
           </Col>
-          <Col span={24} xl={12}>
-            <Form
-              name="exportVehicleForm"
-              form={exportForm}
-              onFinish={handleExport}
-              disabled={loading}
-              layout="vertical"
-              {...formItemLayout}
-              style={{ maxWidth: 4000 }}>
-              <Card
-                title="Xuất xe"
-                extra={
-                  <Form.Item className="mb-0">
-                    <Button htmlType="submit" type="primary" danger>
-                      Xuất
-                    </Button>
-                  </Form.Item>
-                }>
-                <Form.Item
-                  name="licensePlate"
-                  label="Biển số xe"
-                  rules={[
-                    { required: true, message: false },
-                    ({}) => ({
-                      validator(_, value) {
-                        if (ValidateService.licensePlate(value)) {
-                          return Promise.resolve();
-                        }
-                        return Promise.reject({ message: 'Sai định dạng (VD: 12A-2184)' });
-                      }
-                    })
-                  ]}>
-                    <Select>
-                      {vehiclesInParking && Array.isArray(vehiclesInParking) && vehiclesInParking.map((el) => (
-                        <Select.Option value={el.licensePlate}>
-                          {el.licensePlate}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                </Form.Item>
-              </Card>
-            </Form>
-          </Col>
         </Row>
       </Content>
     </Layout>
   );
 }
 
-export default Event;
+export default Import;

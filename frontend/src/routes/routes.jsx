@@ -4,6 +4,8 @@ import Home from "~/views/pages/Main/Home";
 import Map from "~/views/pages/Main/Map";
 import Event from "~/views/pages/Main/Event";
 import History from "~/views/pages/Main/History";
+import Import from "~/views/pages/Main/Import";
+import Export from "~/views/pages/Main/Export";
 
 // Public routes
 const publicRoutes = [
@@ -40,6 +42,20 @@ const publicRoutes = [
     label: 'Nhập xuất xe',
     path: "/event",
     element: <Event />,
+    icon: <InteractionOutlined />,
+  },
+  {
+    key: 'getIn',
+    label: 'Xe vào',
+    path: "/get-in",
+    element: <Import />,
+    icon: <InteractionOutlined />,
+  },
+  {
+    key: 'getOut',
+    label: 'Xe ra',
+    path: "/get-out",
+    element: <Export />,
     icon: <InteractionOutlined />,
   },
 ];

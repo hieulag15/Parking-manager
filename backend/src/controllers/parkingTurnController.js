@@ -25,8 +25,56 @@ const createParkingTurn = async (req, res, next) => {
   }
 }
 
+const getVehicleInOutNumber = async (req, res, next) => {
+  try {
+    const data = req.body;
+
+    const result = await parkingTurnService.getVehicleInOutNumber(data);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: `Error getting vehicle in/out number: ${error.message}` });
+  }
+}
+
+const getVehicleInOutNumberByHour = async (req, res, next) => {
+  try {
+    const data = req.body;
+
+    const result = await parkingTurnService.getVehicleInOutNumberByHour(data);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: `Error getting vehicle in/out number by hour: ${error.message}` });
+  }
+}
+
+const getRevenue = async (req, res, next) => {
+  try {
+    const data = req.body;
+
+    const result = await parkingTurnService.getRevenue(data);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: `Error getting revenue: ${error.message}` });
+  }
+}
+
+const GetRevenueByHour = async (req, res, next) => {
+  try {
+    const data = req.body;
+
+    const result = await parkingTurnService.getRevenueByHour(data);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: `Error getting revenue by hour: ${error.message}` });
+  }
+}
+
 const parkingTurnController = {
-  createParkingTurn
+  createParkingTurn,
+  getVehicleInOutNumber,
+  getVehicleInOutNumberByHour,
+  getRevenue,
+  GetRevenueByHour
 }
 
 export default parkingTurnController;

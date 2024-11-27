@@ -46,7 +46,7 @@ function History({}) {
 
   const licensePlates = vehicles.map(vehicle => vehicle?.licensePlate);
 
-  const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : { ...params, licensePlate: licensePlates. });
+  const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : { ...params, licensePlate: licensePlates[0] });
   // const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : params);
 
   const data = eventsData?.data || [];

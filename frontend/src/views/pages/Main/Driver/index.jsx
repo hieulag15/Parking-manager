@@ -115,11 +115,8 @@ function Driver() {
   };
 
   const onEdit = (values) => {
+    console.log("id: " + values._id);
     values.licensePlate = values.driver?.vehicleIds[0]?.licensePlate || null;
-    values = {
-      ...values,
-      ...values?.driver
-    };
     setFormAction({
       action: 'edit',
       actionText: 'Chỉnh sửa',
@@ -165,7 +162,7 @@ function Driver() {
       });
       callApi();
     } catch (error) {
-      ErrorService.handleError(error, actions.onNoti);
+      ErrorService.hanldeError(error, actions.onNoti);
     }
   };
 

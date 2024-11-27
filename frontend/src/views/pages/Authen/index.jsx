@@ -83,7 +83,7 @@ function Authen({}) {
                     message: 'Vui lòng không bỏ trống'
                   }
                 ]}>
-                <Input size="large" placeholder="Tên đăng nhập" />
+                <Input size="large" placeholder="Tên đăng nhập / Số điện thoại" />
               </Form.Item>
 
               <Form.Item

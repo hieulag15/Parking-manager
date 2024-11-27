@@ -38,8 +38,16 @@ const createUser = async (data) => {
           });
           console.log("New vehicle created:", vehicle);
         } else {
-          console.log("Vehicle found:", vehicle);
-          await vehicleService.updateDriverId(vehicle._id, createUser._id);
+          if (!vehicle.driverId) {
+            await vehicleService.updateDriverId(vehicle._id, result._id);
+          } else {
+            throw new ApiError(
+              StatusCodes.CONFLICT,
+              "Vehicle already assigned to another driver",
+              "Conflict",
+              "BR_vehicle_2"
+            );
+          }
         }
         await addNewVehicle(createUser._id, vehicle._id);
       }
@@ -219,6 +227,40 @@ const updateUser = async (_id, data) => {
   }
 };
 
+// const updateUser = async (_id, data) => {
+//   data.updateAt = Date.now();
+//   try {
+//     const updateOperation = {
+//       $set: {
+//         ...data,
+//       },
+//     };
+
+//     const update = await Person.findOneAndUpdate(
+//       { _id: _id },
+//       updateOperation,
+//       { new: true }
+//     );
+
+//     if (update == null) {
+//       throw new ApiError(
+//         StatusCodes.NOT_FOUND,
+//         "BR_person_1"
+//       );
+//     }
+
+//     return update;
+//   } catch (error) {
+//     if (error.type && error.code)
+//       throw new ApiError(
+//         error.statusCode,
+//         error.message,
+//         error.type,
+//         error.code
+//       );
+//     else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+//   }
+// };
 
 const changePassword = async (payload, next) => {
   const { id, password } = payload;
@@ -280,7 +322,7 @@ const updateAvatar = async (_id, image) => {
   }
 };
 
-const updateDriver = async (_id, { address, driver, email, name, phone }) => {
+const updateDriver = async (_id, { address, driver, email, name, phone, vehicles }) => {
   const person = await Person.findById(_id);
   if (!person) {
     throw new ApiError(
@@ -312,7 +354,40 @@ const updateDriver = async (_id, { address, driver, email, name, phone }) => {
       },
       { new: true }
     );
-    return result;
+
+    console.log("Driver updated:", vehicles);
+
+    // Update driver
+    if (vehicles && Array.isArray(vehicles)) {
+      console.log(vehicles);
+      for (const vehicleData of vehicles) {
+        console.log("Processing license plate:", vehicleData.licensePlate);
+        let vehicle = await vehicleService.findByLicensePlate(vehicleData.licensePlate);
+        if (!vehicle) {
+          vehicle = await vehicleService.create({
+            driverId: result._id,
+            licensePlate: vehicleData.licensePlate,
+            type: vehicleData.type,
+          });
+        } else {
+          if (!vehicle.driverId) {
+            await vehicleService.updateDriverId(vehicle._id, result._id);
+          } else {
+            throw new ApiError(
+              StatusCodes.CONFLICT,
+              "Vehicle already assigned to another driver",
+              "Conflict",
+              "BR_vehicle_2"
+            );
+          }
+        }
+        await addNewVehicle(result._id, vehicle._id);
+      }
+    } else {
+      console.log("not array");
+    }
+
+    return findById(result._id);
   } catch (err) {
     if (err.type && err.code)
       throw new ApiError(err.statusCode, err.message, err.type, err.code);

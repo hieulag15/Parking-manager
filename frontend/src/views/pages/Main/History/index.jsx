@@ -9,20 +9,45 @@ import { useTranslation } from 'react-i18next';
 import { useEvents } from '~/hook/hookMonitor';
 import socket from '~/socket';
 import { HistoryOutlined, FilterOutlined } from '@ant-design/icons';
+import AppContext from '~/context';
+import VehicleApi from '~/api/Collections/VehicleApi';
+import { use } from 'i18next';
+import { useGetVehicleById } from '~/hook/hookVehicle';
 
 const { Title } = Typography;
 
 function History({}) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t: lag } = useTranslation();
   const pageIndex = Number(searchParams.get('pageIndex')) || 1;
   const pageSize = Number(searchParams.get('pageSize')) || 10;
   const params = { pageSize, pageIndex };
+  const { state, actions } = useContext(AppContext);
+  const { auth } = state;
+  const [vehicles, setVehicles] = useState([]);
+
   for (let [key, value] of searchParams.entries()) {
     params[key] = value;
   }
 
-  const { data: eventsData, refetch, isLoading: loading } = useEvents(params);
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      const vehicleIds = auth.info?.driver?.vehicleIds;
+      console.log('vehicleIds', vehicleIds);
+      if (vehicleIds) {
+        const vehiclePromises = vehicleIds.map(vehicleId => VehicleApi.getById(vehicleId));
+        const vehicleResults = await Promise.all(vehiclePromises);
+        setVehicles(vehicleResults);
+        console.log('vehicles', vehicleResults);
+      }
+    };
+
+    fetchVehicles();
+  }, [auth]);
+
+  const licensePlates = vehicles.map(vehicle => vehicle?.licensePlate);
+
+  const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : { ...params, licensePlate: licensePlates. });
+  // const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : params);
 
   const data = eventsData?.data || [];
   const totalCount = eventsData?.totalCount || 0;
@@ -70,6 +95,121 @@ function History({}) {
     }
   ];
 
+  const baseFilters = [
+    {
+      label: 'Sự kiện',
+      name: 'name',
+      type: 'select',
+      inputProps: {
+        options: events.map((event) => ({
+          label: event.label,
+          value: event.value
+        })),
+        allowClear: true,
+        placeholder: 'Chọn'
+      }
+    },
+    {
+      label: 'Vị trí',
+      name: 'position',
+      type: 'input',
+      inputProps: {
+        placeholder: 'Nhập'
+      }
+    },
+    {
+      label: 'Khoảng thời gian',
+      name: 'rangeDate',
+      type: 'range',
+      inputProps: {
+        allowClear: true,
+        format: 'L'
+      }
+    },
+    {
+      label: 'Thời gian',
+      name: 'timePickerRange',
+      type: 'timePickerRange',
+      inputProps: {
+        format: 'HH:mm',
+        allowClear: true
+      }
+    },
+    {
+      label: 'Biển số xe',
+      name: 'licensePlate',
+      type: 'select',
+      inputProps: {
+        options: licensePlates.map((licensePlate) => ({
+          label: licensePlate.label,
+          value: licensePlate.value
+        })),
+        allowClear: true,
+        placeholder: 'Chọn'
+      }
+    }
+  ];
+  
+  const adminFilters = [
+    {
+      label: 'Sự kiện',
+      name: 'name',
+      type: 'select',
+      inputProps: {
+        options: events.map((event) => ({
+          label: event.label,
+          value: event.value
+        })),
+        allowClear: true,
+        placeholder: 'Chọn'
+      }
+    },
+    {
+      label: 'Vị trí',
+      name: 'position',
+      type: 'input',
+      inputProps: {
+        placeholder: 'Nhập'
+      }
+    },
+    {
+      label: 'Khoảng thời gian',
+      name: 'rangeDate',
+      type: 'range',
+      inputProps: {
+        allowClear: true,
+        format: 'L'
+      }
+    },
+    {
+      label: 'Thời gian',
+      name: 'timePickerRange',
+      type: 'timePickerRange',
+      inputProps: {
+        format: 'HH:mm',
+        allowClear: true
+      }
+    },
+    {
+      label: 'Biển số xe',
+      name: 'licensePlate',
+      type: 'input',
+      inputProps: {
+        placeholder: 'Nhập'
+      }
+    },
+    {
+      label: 'Tên chủ xe',
+      name: 'driverName',
+      type: 'input',
+      inputProps: {
+        placeholder: 'Nhập'
+      }
+    }
+  ];
+
+  const filterList = auth.role === 'Admin' ? adminFilters : baseFilters;
+
   return (
     <Layout className="px-4">
       <Header className="border-1" title={'Lịch sử sự kiện'} />
@@ -82,63 +222,7 @@ function History({}) {
           <Filter
             filter={params}
             onChange={onChangeFilter}
-            filterList={[
-              {
-                label: 'Sự kiện',
-                name: 'name',
-                type: 'select',
-                inputProps: {
-                  options: events.map((event) => ({
-                    label: event.label,
-                    value: event.value
-                  })),
-                  allowClear: true,
-                  placeholder: 'Chọn'
-                }
-              },
-              {
-                label: 'Vị trí',
-                name: 'position',
-                type: 'input',
-                inputProps: {
-                  placeholder: 'Nhập'
-                }
-              },
-              {
-                label: 'Biển số xe',
-                name: 'licensePlate',
-                type: 'input',
-                inputProps: {
-                  placeholder: 'Nhập'
-                }
-              },
-              {
-                label: 'Khoảng thời gian',
-                name: 'rangeDate',
-                type: 'range',
-                inputProps: {
-                  allowClear: true,
-                  format: 'L'
-                }
-              },
-              {
-                label: 'Thời gian',
-                name: 'timePickerRange',
-                type: 'timePickerRange',
-                inputProps: {
-                  format: 'HH:mm',
-                  allowClear: true
-                }
-              },
-              {
-                label: 'Tên chủ xe',
-                name: 'driverName',
-                type: 'input',
-                inputProps: {
-                  placeholder: 'Nhập'
-                }
-              }
-            ]}
+            filterList={filterList}
             events={events}
           />
         </Card>
@@ -146,7 +230,7 @@ function History({}) {
           <CustomedTable
             dataSource={data}
             filter={params}
-            columns={getColumns({ pageSize, pageIndex }, lag)}
+            columns={getColumns({ pageSize, pageIndex })}
             loading={loading}
             totalCount={totalCount}
             totalPage={totalPage}

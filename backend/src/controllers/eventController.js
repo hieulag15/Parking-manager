@@ -18,7 +18,7 @@ const createEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-    }
+    } 
 
 const eventController = {
     getEvent,

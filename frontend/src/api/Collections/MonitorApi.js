@@ -45,11 +45,11 @@ export default {
     });
   },
 
-  // export: () => {
-  //   const url = `${DOMAIN}/parkingTurn/event/export`;
-  //   return GET({
-  //     url,
-  //     responseType: 'blob'
-  //   });
-  // }
+  export: () => {
+    const url = `${DOMAIN}/event/export`;
+    return GET({
+      url,
+      responseType: 'blob'
+    });
+  }
 };

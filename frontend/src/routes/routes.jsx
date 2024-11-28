@@ -1,4 +1,4 @@
-import { CarOutlined, InteractionOutlined, LineChartOutlined, UserOutlined, HistoryOutlined } from "@ant-design/icons";
+import { CarOutlined, InteractionOutlined, LineChartOutlined, UserOutlined, HistoryOutlined, QrcodeOutlined } from "@ant-design/icons";
 import Driver from "~/views/pages/Main/Driver";
 import Home from "~/views/pages/Main/Home";
 import Map from "~/views/pages/Main/Map";
@@ -49,14 +49,14 @@ const publicRoutes = [
     label: 'Xe vào',
     path: "/get-in",
     element: <Import />,
-    icon: <InteractionOutlined />,
+    icon: <QrcodeOutlined />,
   },
   {
     key: 'getOut',
     label: 'Xe ra',
     path: "/get-out",
     element: <Export />,
-    icon: <InteractionOutlined />,
+    icon: <QrcodeOutlined />,
   },
 ];
 

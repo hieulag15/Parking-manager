@@ -19,11 +19,6 @@ import { useNavigate } from 'react-router-dom';
 
 const items = [
   {
-    label: 'Chỉnh sửa thông tin',
-    key: 'editProfile',
-    disabled: false
-  },
-  {
     label: 'Thay đổi mật khẩu',
     key: 'changePassword',
     disabled: false

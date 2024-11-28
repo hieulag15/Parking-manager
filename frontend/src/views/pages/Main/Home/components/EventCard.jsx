@@ -89,25 +89,9 @@ function EventCard({ item }) {
               level={5}
               className="mb-0"
               style={{ color: color.primary }}>
-              {'Khu ' + item.zone}
+              {'Khu ' + item.zone + ' - ' + item.position}
             </Typography.Title>
             {rs}
-            {/* <Typography.Text id="eventDriverName">
-              <span className="label">Chủ xe: </span>
-              <span className="value">{item.driver.name}</span>
-            </Typography.Text>
-            <Typography.Text id="eventDriverJob">
-              <span className="label">Nghề nghiệp: </span>
-              <span className="value">{item.driver.job}</span>
-            </Typography.Text>
-            <Typography.Text id="eventDriverDepartment">
-              <span className="label">Đơn vị: </span>
-              <span className="value">{item.driver.department}</span>
-            </Typography.Text>
-            <Typography.Text id="eventDriverPhone">
-              <span className="label">SĐT: </span>
-              <span className="value">{item.driver.phone}</span>
-            </Typography.Text> */}
           </Flex>
         </Col>
       </Row>

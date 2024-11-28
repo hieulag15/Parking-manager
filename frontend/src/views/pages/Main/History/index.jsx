@@ -24,6 +24,7 @@ function History({}) {
   const { state, actions } = useContext(AppContext);
   const { auth } = state;
   const [vehicles, setVehicles] = useState([]);
+  const [selectedLicensePlate, setSelectedLicensePlate] = useState('');
 
   for (let [key, value] of searchParams.entries()) {
     params[key] = value;
@@ -37,7 +38,9 @@ function History({}) {
         const vehiclePromises = vehicleIds.map(vehicleId => VehicleApi.getById(vehicleId));
         const vehicleResults = await Promise.all(vehiclePromises);
         setVehicles(vehicleResults);
-        console.log('vehicles', vehicleResults);
+        if (vehicleResults.length > 0) {
+          setSelectedLicensePlate(vehicleResults[0]?.licensePlate);
+        }
       }
     };
 
@@ -45,9 +48,9 @@ function History({}) {
   }, [auth]);
 
   const licensePlates = vehicles.map(vehicle => vehicle?.licensePlate);
+  console.log('license', licensePlates);
 
-  const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : { ...params, licensePlate: licensePlates[0] });
-  // const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'admin' ? params : params);
+  const { data: eventsData, refetch, isLoading: loading } = useEvents(auth.role === 'Admin' ? params : { ...params, licensePlate: selectedLicensePlate });
 
   const data = eventsData?.data || [];
   const totalCount = eventsData?.totalCount || 0;
@@ -78,10 +81,13 @@ function History({}) {
 
   useEffect(() => {
     refetch();
-  }, [JSON.stringify(params)]);
+  }, [JSON.stringify(params), selectedLicensePlate]);
 
   const onChangeFilter = (values) => {
     setSearchParams(values);
+    if (values.licensePlate) {
+      setSelectedLicensePlate(values.licensePlate);
+    }
   };
 
   const events = [
@@ -141,8 +147,8 @@ function History({}) {
       type: 'select',
       inputProps: {
         options: licensePlates.map((licensePlate) => ({
-          label: licensePlate.label,
-          value: licensePlate.value
+          label: licensePlate,
+          value: licensePlate
         })),
         allowClear: true,
         placeholder: 'Chọn'

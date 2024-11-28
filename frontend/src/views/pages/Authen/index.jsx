@@ -64,17 +64,6 @@ function Authen({}) {
               initialValues={{ role: 'Admin' }}
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}>
-              {/* <Form.Item
-                name="role"
-                className="w-100 d-flex justify-content-center"
-                label=""
-                wrapperCol={24}>
-                <Radio.Group>
-                  {roles.map((role) => (
-                    <Radio value={role.value}>{role.label}</Radio>
-                  ))}
-                </Radio.Group>
-              </Form.Item> */}
               <Form.Item
                 name="username"
                 rules={[

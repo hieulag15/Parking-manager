@@ -14,6 +14,24 @@ const create = async (parkingData, next) => {
     }
 };
 
+const update = async (parkingId, parkingData, next) => {
+  try {
+    const parking = await Parking.findByIdAndUpdate(parkingId, parkingData, { new: true });
+    return parking;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
+const deleteParking = async (parkingId, next) => {
+  try {
+    await Parking.findByIdAndDelete(parkingId);
+    return { message: 'Parking deleted successfully' };
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
 const getParkingByZone = async (zone, next) => {
     try {
       const parking = await Parking.findOne({ zone }).populate({
@@ -57,7 +75,7 @@ const getParkingByZone = async (zone, next) => {
 
         // Tính toán số lượng chỗ đậu xe không có người chiếm dụng
         const totalSlots = parkingWithPopulatedSlots.slots.length;
-        const occupiedSlots = parkingWithPopulatedSlots.slots.filter(slot => slot.parkingTurn).length;
+        const occupiedSlots = parkingWithPopulatedSlots.slots.filter(slot => slot.isBlank).length;
         const unoccupiedSlots = totalSlots - occupiedSlots;
 
         // Bổ sung trường unoccupied
@@ -132,11 +150,32 @@ const isSlotBlank = async (parkingId, position, next) => {
   }
 }
 
+const findEnptySlot = async (parkingId, next) => {
+  try {
+    const parking = await Parking.findById(parkingId);
+    if (!parking) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'Parking not found'));
+    }
+
+    const emptySlot = parking.slots.find(slot => slot.isBlank);
+    if (!emptySlot) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'No empty slot found'));
+    }
+    console.log("test: ", emptySlot.position);
+    return emptySlot.position;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `${error.message}`));
+  }
+}
+
 const parkingService = {
     create,
     getParkingByZone,
     updateSlot,
     isSlotBlank,
+    findEnptySlot,
+    update,
+    deleteParking,
 };
 
 export default parkingService;

@@ -76,13 +76,6 @@ function EventBlock({}) {
 
   return (
     <div>
-      <Row justify="space-between" className="pe-4">
-        <Typography.Title level={4}>Sự kiện</Typography.Title>
-        <Popconfirm title="Xuất báo cáo ?" onConfirm={onExport} okText="Đồng ý" cancelText="Hủy">
-          <Button icon={<FileExcelOutlined />} size="large" type="text" />
-        </Popconfirm>
-      </Row>
-
       <div
         id="scrollableDiv"
         style={{
@@ -92,15 +85,6 @@ function EventBlock({}) {
         <InfiniteScroll
           dataLength={data.length}
           hasMore={data.length < 50}
-          // loader={
-          //   <Skeleton
-          //     avatar
-          //     paragraph={{
-          //       rows: 1
-          //     }}
-          //     active
-          //   />
-          // }
           endMessage={<Divider plain>Không còn sự kiện khác</Divider>}
           scrollableTarget="scrollableDiv">
           <List
@@ -117,25 +101,6 @@ function EventBlock({}) {
           />
         </InfiniteScroll>
       </div>
-      {/* <List split={false}>
-        <VirtualList
-          data={data}
-          height={720}
-          onScroll={onScroll}
-          rowKey={(d) => {
-            console.log(d);
-            return 1;
-          }}>
-          {(item, index) => {
-            const color = item.type === 'in' ? inColor : outColor;
-            return (
-              <List.Item>
-
-              </List.Item>
-            );
-          }}
-        </VirtualList>
-      </List> */}
     </div>
   );
 }

@@ -1,29 +1,19 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { TileLayout } from '@progress/kendo-react-layout';
-import {
-  Badge,
-  Card,
-  Col,
-  Layout,
-  Row,
-  Table,
-  Typography,
-  Space,
-  Button,
-  Input,
-  Modal,
-  Pagination
-} from 'antd';
+import { Badge, Card, Layout, Row, Typography, Space, Button, Modal, Pagination } from 'antd';
 import { Content, Footer, Header } from '~/views/layouts';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DeleteFilled } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DeleteFilled, FilterOutlined } from '@ant-design/icons';
 import { UserApi } from '~/api';
 import dayjs from 'dayjs';
 import DriverForm from './DriverForm';
 import { useSearchParams } from 'react-router-dom';
 import AppContext from '~/context';
 import { ErrorService } from '~/services';
+import CustomedTable from '~/views/components/Table';
+import Filter from '~/views/components/Filter';
 
-function Driver({}) {
+const { Title } = Typography;
+
+function Driver() {
   const [data, setData] = useState({
     data: [],
     totalCount: 0,
@@ -43,12 +33,8 @@ function Driver({}) {
   for (let [key, value] of searchParams.entries()) {
     params[key] = value;
   }
-  const name = searchParams.get('name');
-  const phone = searchParams.get('phone');
-  const email = searchParams.get('email');
-  const licensePlate = searchParams.get('licensePlate');
   const [loading, setLoading] = useState(false);
-  const [selectedRows, setSeletedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
   const isMounted = useRef(false);
 
   const callApi = async () => {
@@ -58,11 +44,11 @@ function Driver({}) {
       setData(api);
       isMounted.current = true;
     } catch (error) {
-      ErrorService.hanldeError(error, actions.onNoti);
+      ErrorService.handleError(error, actions.onNoti);
       setData({ data: [], pageSize: 0, pageIndex: 0 });
     } finally {
       setLoading(false);
-      setSeletedRows([]);
+      setSelectedRows([]);
     }
   };
 
@@ -80,16 +66,8 @@ function Driver({}) {
 
   const expandedRowRender = (subData) => {
     const columns = [
-      {
-        title: 'Biển số xe',
-        dataIndex: 'licensePlate',
-        key: 'licensePlate'
-      },
-      {
-        title: 'Loại xe',
-        dataIndex: 'type',
-        key: 'type'
-      },
+      { title: 'Biển số xe', dataIndex: 'licensePlate', key: 'licensePlate' },
+      { title: 'Loại xe', dataIndex: 'type', key: 'type' },
       {
         title: 'Trạng thái',
         key: 'status',
@@ -106,12 +84,12 @@ function Driver({}) {
           }
           return <Badge {...config} />;
         }
-},
+      },
       {
         title: 'Ngày đăng ký',
         dataIndex: 'createdAt',
         key: 'createdAt',
-        render: (_, record, index) => dayjs(record.createdAt).format('L')
+        render: (_, record) => dayjs(record.createdAt).format('L')
       }
     ];
     const newData = subData?.driver?.vehicleIds || [];
@@ -121,7 +99,7 @@ function Driver({}) {
         <Typography.Title type="primary" level={5}>
           Danh sách xe:
         </Typography.Title>
-        <Table
+        <CustomedTable
           columns={columns}
           dataSource={newData}
           pagination={false}
@@ -137,11 +115,8 @@ function Driver({}) {
   };
 
   const onEdit = (values) => {
+    console.log("id: " + values._id);
     values.licensePlate = values.driver?.vehicleIds[0]?.licensePlate || null;
-    values = {
-      ...values,
-      ...values?.driver
-    };
     setFormAction({
       action: 'edit',
       actionText: 'Chỉnh sửa',
@@ -167,8 +142,7 @@ function Driver({}) {
       });
       callApi();
     } catch (error) {
-      ErrorService.hanldeError(error, actions.onNoti);
-    } finally {
+      ErrorService.handleError(error, actions.onNoti);
     }
   };
 
@@ -189,11 +163,10 @@ function Driver({}) {
       callApi();
     } catch (error) {
       ErrorService.hanldeError(error, actions.onNoti);
-    } finally {
     }
   };
 
-  const hanldeCloseForm = ({ reload }) => {
+  const handleCloseForm = ({ reload }) => {
     setOpenForm(false);
     if (reload) callApi();
   };
@@ -205,94 +178,61 @@ function Driver({}) {
       width: 60,
       render: (_, prop, index) => (pageIndex - 1) * pageSize + index + 1
     },
-    {
-      title: 'Tên',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) => a.name - b.name
-    },
-    {
-      title: 'Số điện thoại',
-      dataIndex: 'phone',
-      key: 'phone'
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email'
-    },
-    {
-      title: 'Địa chỉ',
-      dataIndex: 'address',
-      key: 'address'
-    },
-    {
-      title: 'Nghề nghiệp',
-      dataIndex: ['driver', 'job'],
+    { title: 'Tên', dataIndex: 'name', key: 'name', sorter: (a, b) => a.name - b.name },
+    { title: 'Số điện thoại', dataIndex: 'phone', key: 'phone' },
+    { title: 'Email', dataIndex: 'email', key: 'email' },
+    { title: 'Địa chỉ', dataIndex: 'address', key: 'address' },
+    { 
+      title: 'Nghề nghiệp', 
+      dataIndex: ['driver', 'job'], 
       key: 'job',
-      render: (text, record, index) => text //JobServices.getTextByValue(text)// 
+      render: (text) => text
     },
-    {
-      title: 'Đơn vị (Khoa)',
-      dataIndex: ['driver', 'department'],
-key: 'department',
-      render: (text, record, index) => text
+    { 
+      title: 'Đơn vị (Khoa)', 
+      dataIndex: ['driver', 'department'], 
+      key: 'department',
+      render: (text) => text
     },
     {
       title: 'Ngày tham gia',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
-      render: (_, record, index) => dayjs(record.createdAt).format('L')
+      render: (_, record) => dayjs(record.createdAt).format('L')
     },
     {
       title: '',
       dataIndex: 'actions',
       width: 120,
       key: 'actions',
-      render: (_, record, index) => (
+      render: (_, record) => (
         <Space>
           <Button
             icon={<EditOutlined />}
             type="text"
-            onClick={() => {
-              onEdit(record);
-            }}
+            onClick={() => onEdit(record)}
           />
           <Button
             icon={<DeleteOutlined />}
             type="text"
-            onClick={() => {
-              onDelete(record);
-            }}
+            onClick={() => onDelete(record)}
           />
         </Space>
       )
     }
   ];
 
-  const onEnterFilter = (e) => {
-    const { value, name } = e.target;
-    if (value) {
-      setSearchParams({ ...params, [name]: value.toString().trim() });
-    }
-  };
-
-  const onChangeFilter = (e) => {
-    const { value, name } = e.target;
-    if (!value) {
-      delete params[name];
-      setSearchParams({ ...params });
-    }
+  const onChangeFilter = (values) => {
+    setSearchParams(values);
   };
 
   const rowSelection = {
     onChange: (_, selectedRows) => {
-      setSeletedRows(selectedRows);
+      setSelectedRows(selectedRows);
     },
     getCheckboxProps: (record) => ({
       disabled: record.name === 'Disabled User',
-      // Column configuration not to be checked
       name: record.name
     })
   };
@@ -304,92 +244,73 @@ key: 'department',
         <Modal
           title={formAction.title}
           open={openForm}
-          onCancel={() => {
-            setOpenForm(false);
-          }}
+          onCancel={() => setOpenForm(false)}
           destroyOnClose={true}
-          classNames={{ footer: 'd-none' }}>
+          footer={null}>
           <DriverForm
             formAction={formAction}
             isOpen={openForm}
-            onClose={hanldeCloseForm}
+            onClose={handleCloseForm}
             onNoti={actions.onNoti}
             onMess={actions.onMess}
           />
         </Modal>
-        <Card
-          title={
-            <Typography.Title type="primary" level={4}>
-              Danh sách:
-            </Typography.Title>
-          }
-          extra={
-            <Space>
-              {selectedRows.length > 0 && (
-                <Button type="primary" icon={<DeleteFilled />} onClick={onDeleteMany} danger>
-                  Xóa
-                </Button>
-              )}
-              <Button type="primary" ghost icon={<PlusOutlined />} onClick={onAdd}>
-                Thêm chủ xe
+        <Card className="mb-6 shadow-md">
+          <Space className="mb-4" align="center">
+            <FilterOutlined className="text-lg text-blue-500" />
+            <Title level={4} className="m-0">Bộ lọc</Title>
+          </Space>
+          <Filter
+            filter={params}
+            onChange={onChangeFilter}
+            filterList={[
+              {
+                label: 'Tên',
+                name: 'name',
+                type: 'input',
+                inputProps: {
+                  placeholder: 'Nhập'
+                }
+              },
+              {
+                label: 'Số điện thoại',
+                name: 'phone',
+                type: 'input',
+                inputProps: {
+                  placeholder: 'Nhập'
+                }
+              },
+              {
+                label: 'Email',
+                name: 'email',
+                type: 'input',
+                inputProps: {
+                  placeholder: 'Nhập'
+                }
+              },
+              {
+                label: 'Biển số xe',
+                name: 'licensePlate',
+                type: 'input',
+                inputProps: {
+                  placeholder: 'Nhập'
+                }
+              }
+            ]}
+          />
+        </Card>
+        <Card className="shadow-md">
+          <Space className="mb-4">
+            {selectedRows.length > 0 && (
+              <Button type="primary" icon={<DeleteFilled />} onClick={onDeleteMany} danger>
+                Xóa
               </Button>
-            </Space>
-          }
-          className="box">
-          <Row className="mt-2 mb-4 w-100">
-            <Row>
-              <Space>
-                <Typography.Title level={5} className="mb-0">
-                  Bộ lọc:
-                </Typography.Title>
-                <Input
-                  style={{
-                    width: 200
-                  }}
-                  placeholder="Tên"
-                  name="name"
-                  defaultValue={name}
-                  onPressEnter={onEnterFilter}
-                  onChange={onChangeFilter}
-                  allowClear={true}
-                />
-                <Input
-                  style={{
-                    width: 200
-                  }}
-                  placeholder="Số điện thoại"
-                  name="phone"
-                  defaultValue={phone}
-                  onPressEnter={onEnterFilter}
-                  onChange={onChangeFilter}
-                  allowClear={true}
-                />
-                <Input
-                  style={{
-                    width: 320
-                  }}
-                  name="email"
-                  placeholder="Email"
-                  defaultValue={email}
-                  onPressEnter={onEnterFilter}
-                  onChange={onChangeFilter}
-                  allowClear={true}
-                />
-                <Input
-                  style={{
-                    width: 200
-                  }}
-                  name="licensePlate"
-                  placeholder="Biển số xe"
-                  defaultValue={licensePlate}
-                  onPressEnter={onEnterFilter}
-                  onChange={onChangeFilter}
-                  allowClear={true}
-                />
-              </Space>
-            </Row>
-          </Row>
-          <Table
+            )}
+            <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
+              Thêm chủ xe
+            </Button>
+          </Space>
+          <CustomedTable
             columns={columns}
             expandable={{
               expandedRowRender,
@@ -400,36 +321,21 @@ key: 'department',
               ...rowSelection
             }}
             loading={loading}
-            pagination={false}
             dataSource={data.data || []}
+            filter={params}
+            totalCount={totalCount}
+            totalPage={totalPage}
+            pageSize={pageSize}
+            pageIndex={pageIndex}
+            onChange={onChangeFilter}
             rowKey={(record) => record._id}
-            scroll={{ y: 600, scrollToFirstRowOnChange: true }}
+            scroll={{ y: 'calc(100vh - 450px)', scrollToFirstRowOnChange: true }}
           />
-          <Row className="mt-4 w-100" justify={'end'}>
-            {data.totalCount ? (
-              <Pagination
-                total={totalCount}
-                showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-                pageSize={pageSize}
-                current={pageIndex}
-                disabled={loading}
-                showSizeChanger={true}
-                pageSizeOptions={[10, 20, 30]}
-                onChange={(page, pageSize) => {
-                  setSearchParams({
-                    ...Object.fromEntries(searchParams.entries()),
-                    pageIndex: page,
-                    pageSize
-                  });
-                }}
-              />
-            ) : null}
-          </Row>
         </Card>
       </Content>
-      <Footer />
     </Layout>
   );
 }
 
 export default Driver;
+

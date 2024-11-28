@@ -18,7 +18,7 @@ const create = async (data, next) => {
     }
 
     // Kiểm tra xe có trong bãi chưa
-    const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
+    const vehicleInParking = await findParkingTurnInParking(data.licensePlate);
 
     if (vehicleInParking) {
       return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi'));
@@ -86,7 +86,7 @@ const createWithoutPosition = async (data, next) => {
     }
 
     // Kiểm tra xe có trong bãi chưa
-    const vehicleInParking = await findVehicleInParkingTurn(data.licensePlate);
+    const vehicleInParking = await findParkingTurnInParking(data.licensePlate);
 
     if (vehicleInParking) {
       return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Xe đã ở trong bãi'));
@@ -125,7 +125,7 @@ const createWithoutPosition = async (data, next) => {
 
 const outParking = async (data, next) => {
   try {
-    const parkingTurn = await findVehicleInParkingTurn(data.licensePlate);
+    const parkingTurn = await findParkingTurnInParking(data.licensePlate);
     const parking = await Parking.findOne({ _id: parkingTurn.parkingId });
     const vehicle = await Vehicle.findOne({ licensePlate: data.licensePlate }).populate('driverId');
 
@@ -191,6 +191,27 @@ const updateParkingTurnEndTime = async (vehicleId, next) => {
 
 const findVehicleInParkingTurn = async (licensePlate, next) => {
   const vehicle = await Vehicle.findOne({ licensePlate });
+  if (!vehicle) {
+    return next(new ApiError(StatusCodes.NOT_FOUND, 'Vehicle not found', 'Not Found', 'BR_parking_4'));
+  }
+  try {
+    const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }).populate('parkingId');
+    if (!parkingTurn) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, 'Parking turn not found', 'Not Found', 'BR_parking_5'));
+    }
+
+    const parkingTurnWithPopulatedParking = parkingTurn.toObject();
+    parkingTurnWithPopulatedParking.parking = parkingTurnWithPopulatedParking.parkingId;
+    delete parkingTurnWithPopulatedParking.parkingId;
+
+    return parkingTurnWithPopulatedParking;
+  } catch (error) {
+    return next(new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Tìm kiếm xe trong bãi thất bại', 'Not Created', 'BR_parking_3'));
+  }
+};
+
+const findParkingTurnInParking = async (licensePlate, next) => {
+  const vehicle = await Vehicle.findOne({ licensePlate });
   try {
     const parkingTurn = await ParkingTurn.findOne({ vehicleId: vehicle._id, status: 'in' }); // thì xe có trong bãi
     return parkingTurn;
@@ -199,10 +220,324 @@ const findVehicleInParkingTurn = async (licensePlate, next) => {
   }
 };
 
+const getVehicleInOutNumber = async (data) => {
+  try {
+  const start = Date.parse(parseDate(data.fromDate));
+  const end = Date.parse(parseDate(data.toDate));
+
+  const vehicleInOutData = await ParkingTurn.aggregate([
+    {
+      $match: {
+        start: { $gte: new Date(start), $lte: new Date(end) },
+      },
+    },
+    {
+      $lookup: {
+        from: 'parkings', // Tên collection của Parking
+        localField: 'parkingId',
+        foreignField: '_id',
+        as: 'parking',
+      },
+    },
+    {
+      $unwind: '$parking',
+    },
+    {
+      $addFields: {
+        timezoneOffset: { $literal: new Date().getTimezoneOffset() * 60 * 1000 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: { $subtract: ['$start', '$timezoneOffset'] } },
+          month: { $month: { $subtract: ['$start', '$timezoneOffset'] } },
+          day: { $dayOfMonth: { $subtract: ['$start', '$timezoneOffset'] } },
+          zone: { $substr: ['$position', 0, 1] },
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: '$_id.year',
+          month: '$_id.month',
+          day: '$_id.day',
+        },
+        data: {
+          $push: {
+            k: '$_id.zone',
+            v: '$count',
+          },
+        },
+        total: { $sum: '$count' },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        date: {
+          $dateToString: {
+            format: '%d/%m/%Y',
+            date: {
+              $dateFromParts: {
+                year: '$_id.year',
+                month: '$_id.month',
+                day: '$_id.day',
+              },
+            },
+          },
+        },
+        data: { $arrayToObject: '$data' },
+        total: 1,
+      },
+    },
+    {
+      $sort: {
+        total: -1, // Sắp xếp giảm dần theo tổng số lượng
+      },
+    },
+  ]);
+
+  return vehicleInOutData;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(error.statusCode, error.message, error.type, error.code);
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+}
+
+const getVehicleInOutNumberByHour = async (data) => {
+  try {
+    const start = Date.parse(parseDate(data.fromDate));
+    const end = Date.parse(parseDate(data.toDate));
+
+    const vehicleInOutData = await ParkingTurn.aggregate([
+      {
+        $match: {
+          start: { $gte: new Date(start), $lte: new Date(end) },
+        },
+      },
+      {
+        $lookup: {
+          from: 'parkings', // Tên collection của Parking
+          localField: 'parkingId',
+          foreignField: '_id',
+          as: 'parking',
+        },
+      },
+      {
+        $unwind: '$parking',
+      },
+      {
+        $addFields: {
+          timezoneOffset: { $literal: new Date().getTimezoneOffset() * 60 * 1000 },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            hour: { $hour: { $subtract: ['$start', '$timezoneOffset'] } },
+            zone: { $substr: ['$position', 0, 1] },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            hour: '$_id.hour',
+          },
+          data: {
+            $push: {
+              k: '$_id.zone',
+              v: '$count',
+            },
+          },
+          total: { $sum: '$count' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          hour: '$_id.hour',
+          data: { $arrayToObject: '$data' },
+          total: 1,
+        },
+      },
+    ]);
+
+    return vehicleInOutData;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(error.statusCode, error.message, error.type, error.code);
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const getRevenue = async (data) => {
+  try {
+    const start = Date.parse(parseDate(data.fromDate));
+    const end = Date.parse(parseDate(data.toDate));
+
+    const revenueData = await ParkingTurn.aggregate([
+      {
+        $match: {
+          start: { $gte: new Date(start), $lte: new Date(end) },
+        },
+      },
+      {
+        $lookup: {
+          from: 'parkings', // Tên collection của Parking
+          localField: 'parkingId',
+          foreignField: '_id',
+          as: 'parking',
+        },
+      },
+      {
+        $unwind: '$parking',
+      },
+      {
+        $addFields: {
+          timezoneOffset: { $literal: new Date().getTimezoneOffset() * 60 * 1000 },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: { $subtract: ['$start', '$timezoneOffset'] } },
+            month: { $month: { $subtract: ['$start', '$timezoneOffset'] } },
+            day: { $dayOfMonth: { $subtract: ['$start', '$timezoneOffset'] } },
+            zone: '$parking.zone',
+          },
+          totalFee: { $sum: '$fee' },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: '$_id.year',
+            month: '$_id.month',
+            day: '$_id.day',
+          },
+          data: {
+            $push: {
+              k: '$_id.zone',
+              v: '$totalFee',
+            },
+          },
+          total: { $sum: '$totalFee' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: {
+            $dateToString: {
+              format: '%d/%m/%Y',
+              date: {
+                $dateFromParts: {
+                  year: '$_id.year',
+                  month: '$_id.month',
+                  day: '$_id.day',
+                },
+              },
+            },
+          },
+          data: { $arrayToObject: '$data' },
+          total: 1,
+        },
+      },
+    ]);
+
+    return revenueData;
+  } catch (error) {
+    if (error.type && error.code)
+      throw new ApiError(error.statusCode, error.message, error.type, error.code);
+    else throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const GetRevenueByHour = async (data) => {
+  try {
+    const start = Date.parse(parseDate(data.fromDate));
+    const end = Date.parse(parseDate(data.toDate));
+
+    const revenueByHour = await ParkingTurn.aggregate([
+      {
+        $match: {
+          start: { $gte: new Date(start), $lte: new Date(end) },
+        },
+      },
+      {
+        $lookup: {
+          from: 'parkings', // Tên collection của Parking
+          localField: 'parkingId',
+          foreignField: '_id',
+          as: 'parking',
+        },
+      },
+      {
+        $unwind: '$parking',
+      },
+      {
+        $addFields: {
+          timezoneOffset: { $literal: new Date().getTimezoneOffset() * 60 * 1000 },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            hour: { $hour: { $subtract: ['$start', '$timezoneOffset'] } },
+            zone: '$parking.zone',
+          },
+          totalFee: { $sum: '$fee' },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            hour: '$_id.hour',
+          },
+          data: {
+            $push: {
+              k: '$_id.zone',
+              v: '$totalFee',
+            },
+          },
+          total: { $sum: '$totalFee' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          hour: '$_id.hour',
+          data: { $arrayToObject: '$data' },
+          total: 1,
+        },
+      },
+    ]);
+
+    return revenueByHour;
+  } catch (error) {
+    if (error.type && error.code) {
+      throw new ApiError(error.statusCode, error.message, error.type, error.code);
+    } else {
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    }
+  }
+};
+
 const parkingTurnService = {
   create,
   createWithoutPosition,
-  outParking
+  outParking,
+  getVehicleInOutNumber,
+  getVehicleInOutNumberByHour,
+  getRevenue,
+  GetRevenueByHour,
+  findVehicleInParkingTurn,
 };
 
 export default parkingTurnService;

@@ -88,7 +88,6 @@ function Main({}) {
         destroyOnClose={true}
         classNames={{ footer: 'd-none' }}>
         <PasswordForm
-          account={state.auth?.info?.account}
           isOpen={state.onChangePassword}
           onClose={({ afterAction }) => {
             actions.onSetChangePassword();

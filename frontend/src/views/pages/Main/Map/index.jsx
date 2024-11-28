@@ -22,17 +22,17 @@ import socket from '~/socket';
 
 function Map({}) {
   const { token } = theme.useToken();
-  const { colorBgContainer } = token;
   const { state, actions } = useContext(AppContext);
+  const { auth } = state;
   let [searchParams, setSearchParams] = useSearchParams();
   const [slots, setSlots] = useState([]);
   const zone = searchParams.get('zone') || 'A';
-  const isMounted = useRef(false);
   const onChangeZone = (e) => {
     setSearchParams({ zone: e.target.value });
   };
 
-  const { data: statusData, refetch, isFetching: loading } = useGetStatus({ zone});
+  const { data: statusData, refetch, isFetching: loading } = useGetStatus({ zone });
+  console.log('status', statusData);
 
   useEffect(() => {
     refetch();
@@ -130,7 +130,8 @@ function Map({}) {
                           <DetailFloorStyled
                             key={position + ix}
                             title={
-                              <Flex justify="space-between">
+                              auth.role === 'Admin' && (
+                                <Flex justify="space-between">
                                 <Typography.Title
                                   id="location"
                                   level={5}
@@ -142,14 +143,17 @@ function Map({}) {
                                   {dayjs(slot?.parkingTurn?.start).format('L LTS')}
                                 </Tag>
                               </Flex>
+                              )
                             }
                             content={
-                              <DetailSlot
+                              auth.role === 'Admin' && (
+                                <DetailSlot
                                 {...vehicle}
                                 zone={zone}
                                 vehicle={slot?.parkingTurn?.vehicle}
                                 driver={slot?.parkingTurn?.vehicle?.driver}
                               />
+                              )
                             }
                             overlayInnerStyle={{
                               border: '1px solid',
@@ -188,7 +192,6 @@ function Map({}) {
           </Spin>
         </TransformBlock>
       </Content>
-      <Footer />
     </Layout>
   );
 }

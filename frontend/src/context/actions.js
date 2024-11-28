@@ -5,6 +5,7 @@ import { ErrorService } from '~/services';
 export const changeState = async (params = { type: null, payload }) => params;
 
 export const onLogin = async (params) => {
+  let rs;
   let isLogin = false;
   let type = 'error';
   let content = '';
@@ -12,9 +13,9 @@ export const onLogin = async (params) => {
   const { username, password, onComplete } = params;
   let role = null;
   try {
-    const rs = await AuthApi.authentication({ username, password, onNoti });
+    rs = await AuthApi.authentication({ username, password, onNoti });
     role = rs.person.account.role;
-    if (rs) {
+    if (role) {
       isLogin = true;
       info = rs?.person || {};
       type = 'success';

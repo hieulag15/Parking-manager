@@ -21,8 +21,7 @@ function Import() {
   const [vehiclesOutParking, setVehiclesOutParking] = useState([]);
   const [parkings, setParkings] = useState({});
   const [importForm] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [isSelect, setIsSelect] = useState(false);
+  const [inputMethod, setInputMethod] = useState('input');
   const [qrData, setQrData] = useState(null);
   const [licensePlate, setLicensePlate] = useState(''); // Thêm trạng thái để lưu trữ giá trị của licensePlate
   const { mutate: importVehicle, isLoading: isImportLoading } = useImportVehicle();
@@ -110,7 +109,7 @@ function Import() {
       <Content className="w-100 py-3">
         <Row gutter={24}>
         <Col span={24} lg={12}>
-          {isSelect ? (
+          {inputMethod === 'qr' ? (
             <Card
             title={<Space><QrcodeOutlined /> Quét mã QR</Space>}
             className="w-full"
@@ -172,12 +171,19 @@ function Import() {
             <Card
               title={<Space><CarOutlined /> Thông tin xe</Space>}
               extra={
-                <Switch
-                  checkedChildren="Quét mã QR"
-                  unCheckedChildren="Nhập"
-                  checked={isSelect}
-                  onChange={(checked) => setIsSelect(checked)}
-                />
+                <Radio.Group
+                  value={inputMethod}
+                  onChange={(e) => 
+                  {
+                    setInputMethod(e.target.value)
+                    console.log(inputMethod)
+                  }
+                  }
+                >
+                  <Radio.Button value="input">Nhập</Radio.Button>
+                  <Radio.Button value="select">Chọn</Radio.Button>
+                  <Radio.Button value="qr">Quét mã QR</Radio.Button>
+                </Radio.Group>
               }
             >
               <Form
@@ -200,16 +206,24 @@ function Import() {
                     })
                   ]}
                 >
-                  {isSelect ? (
+                  {inputMethod === 'qr' ? (
                     <Input placeholder="A1-013" value={licensePlate} readOnly />
+                  ) : inputMethod === 'select' ? (
+                      <Select placeholder="Chọn biển số xe">
+                        {vehiclesOutParking && Array.isArray(vehiclesOutParking) && vehiclesOutParking.map((el) => (
+                          <Select.Option key={el.licensePlate} value={el.licensePlate}>
+                            {el.licensePlate}
+                          </Select.Option>
+                        ))}
+                      </Select>
                   ) : (
                     <Input placeholder="A1-013" />
                   )}
                 </Form.Item>
 
-                {!isSelect && (
+                {inputMethod === 'input' && (
                   <Form.Item
-                    label="Loại xe"
+                    label="Loại xe" 
                     name="type"
                     rules={[{ required: true, message: 'Vui lòng chọn loại xe' }]}
                   >
